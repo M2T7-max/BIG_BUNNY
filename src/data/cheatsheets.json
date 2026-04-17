@@ -1,0 +1,72 @@
+[
+  {
+    "tool":"Nmap","icon":"🔭","sections":[
+      {"title":"Basic Scans","commands":["nmap target","nmap -sV target","nmap -sC target","nmap -A target","nmap -p- target","nmap -sU target","nmap -sn 192.168.1.0/24","nmap -Pn target"]},
+      {"title":"Scan Types","commands":["nmap -sS target (SYN/Stealth)","nmap -sT target (TCP Connect)","nmap -sU target (UDP)","nmap -sA target (ACK)","nmap -sW target (Window)","nmap -sN target (NULL)","nmap -sF target (FIN)","nmap -sX target (Xmas)"]},
+      {"title":"Port Specification","commands":["nmap -p 80 target","nmap -p 1-1000 target","nmap -p- target","nmap -p U:53,T:80 target","nmap --top-ports 100 target","nmap -F target (Fast/Top 100)"]},
+      {"title":"NSE Scripts","commands":["nmap --script=vuln target","nmap --script=default target","nmap --script=http-enum target","nmap --script=smb-vuln* target","nmap --script=dns-brute target","nmap --script-updatedb"]},
+      {"title":"Output","commands":["nmap -oN output.txt target","nmap -oX output.xml target","nmap -oG output.gnmap target","nmap -oA output target"]},
+      {"title":"Evasion","commands":["nmap -D RND:5 target (Decoys)","nmap --source-port 53 target","nmap -f target (Fragment)","nmap --data-length 25 target","nmap -T0 target (Paranoid timing)","nmap --spoof-mac 0 target"]}
+    ]
+  },
+  {
+    "tool":"FFUF","icon":"⚡","sections":[
+      {"title":"Directory Fuzzing","commands":["ffuf -w wordlist.txt -u http://target/FUZZ","ffuf -w wordlist.txt -u http://target/FUZZ -e .php,.html,.txt","ffuf -w wordlist.txt -u http://target/FUZZ -mc 200,301","ffuf -w wordlist.txt -u http://target/FUZZ -fc 404"]},
+      {"title":"Parameter Fuzzing","commands":["ffuf -w params.txt -u http://target?FUZZ=test","ffuf -w wordlist.txt -u http://target -X POST -d 'user=FUZZ&pass=test'","ffuf -w values.txt -u http://target?id=FUZZ"]},
+      {"title":"Virtual Host Discovery","commands":["ffuf -w vhosts.txt -u http://target -H 'Host: FUZZ.target.com'","ffuf -w subdomains.txt -u http://target -H 'Host: FUZZ.target.com' -fs 4242"]},
+      {"title":"Advanced Options","commands":["ffuf -w wordlist.txt -u URL/FUZZ -t 100 (Threads)","ffuf -w wordlist.txt -u URL/FUZZ -rate 100 (Rate limit)","ffuf -w wordlist.txt -u URL/FUZZ -fl 42 (Filter lines)","ffuf -w wordlist.txt -u URL/FUZZ -fw 100 (Filter words)","ffuf -w wordlist.txt -u URL/FUZZ -recursion -recursion-depth 3"]},
+      {"title":"Authentication","commands":["ffuf -w wordlist.txt -u URL/FUZZ -H 'Cookie: session=abc123'","ffuf -w wordlist.txt -u URL/FUZZ -H 'Authorization: Bearer token'","ffuf -w users.txt:W1 -w pass.txt:W2 -u URL -X POST -d 'user=W1&pass=W2' -fc 401"]}
+    ]
+  },
+  {
+    "tool":"SQLMap","icon":"💉","sections":[
+      {"title":"Basic Usage","commands":["sqlmap -u 'http://target?id=1'","sqlmap -u 'http://target?id=1' --dbs","sqlmap -u 'http://target?id=1' -D dbname --tables","sqlmap -u 'http://target?id=1' -D dbname -T tablename --dump"]},
+      {"title":"Request Options","commands":["sqlmap -r request.txt","sqlmap -u URL --data='user=admin&pass=test'","sqlmap -u URL --cookie='session=abc123'","sqlmap -u URL --headers='X-Custom: value'","sqlmap -u URL --method=PUT"]},
+      {"title":"Detection","commands":["sqlmap -u URL --level=5 --risk=3","sqlmap -u URL --technique=BEUST","sqlmap -u URL --dbms=mysql","sqlmap -u URL --string='Welcome'","sqlmap -u URL --not-string='error'"]},
+      {"title":"Exploitation","commands":["sqlmap -u URL --os-shell","sqlmap -u URL --os-cmd='whoami'","sqlmap -u URL --file-read='/etc/passwd'","sqlmap -u URL --file-write=shell.php --file-dest=/var/www/html/shell.php","sqlmap -u URL --sql-shell"]},
+      {"title":"Tamper Scripts","commands":["sqlmap -u URL --tamper=space2comment","sqlmap -u URL --tamper=between","sqlmap -u URL --tamper=randomcase","sqlmap -u URL --tamper=charencode","sqlmap -u URL --tamper=base64encode"]},
+      {"title":"Automation","commands":["sqlmap -u URL --batch","sqlmap -u URL --crawl=3","sqlmap -u URL --forms","sqlmap -u URL --threads=10","sqlmap -m urls.txt --batch"]}
+    ]
+  },
+  {
+    "tool":"Nuclei","icon":"☢️","sections":[
+      {"title":"Basic Scans","commands":["nuclei -u http://target","nuclei -l urls.txt","nuclei -u http://target -t cves/","nuclei -u http://target -severity critical,high"]},
+      {"title":"Template Selection","commands":["nuclei -u URL -t cves/","nuclei -u URL -t vulnerabilities/","nuclei -u URL -t misconfiguration/","nuclei -u URL -t exposures/","nuclei -u URL -t technologies/","nuclei -u URL -as (Automatic selection)"]},
+      {"title":"Output","commands":["nuclei -u URL -o results.txt","nuclei -u URL -json -o results.json","nuclei -u URL -me output_dir/","nuclei -u URL -silent"]},
+      {"title":"Configuration","commands":["nuclei -u URL -rate-limit 100","nuclei -u URL -c 50 (Concurrency)","nuclei -u URL -timeout 10","nuclei -u URL -retries 3","nuclei -u URL -H 'Cookie: session=abc'"]},
+      {"title":"Template Management","commands":["nuclei -update-templates","nuclei -tl (List templates)","nuclei -validate","nuclei -u URL -nt (New templates only)","nuclei -u URL -t ~/custom-templates/"]}
+    ]
+  },
+  {
+    "tool":"Burp Suite","icon":"🕷️","sections":[
+      {"title":"Proxy","commands":["Configure browser proxy: 127.0.0.1:8080","Install Burp CA certificate in browser","Intercept requests: Proxy > Intercept > On","Forward/Drop intercepted requests","Send to Repeater: Ctrl+R","Send to Intruder: Ctrl+I"]},
+      {"title":"Repeater","commands":["Modify and resend requests","Compare responses side by side","Test injection points manually","Follow redirections","Change request method (right-click)"]},
+      {"title":"Intruder","commands":["Sniper: Single payload position","Battering Ram: Same payload all positions","Pitchfork: Parallel payload sets","Cluster Bomb: All payload combinations","Set payload positions with §markers§"]},
+      {"title":"Scanner","commands":["Active scan: right-click > Scan","Passive scan: automatic in background","Scan configuration: crawl and audit","Scan specific insertion points","Export scan report: HTML/XML"]},
+      {"title":"Extensions","commands":["Install from BApp Store","Autorize - IDOR testing","Param Miner - hidden parameters","Active Scan++ - enhanced scanning","Logger++ - advanced logging","JWT Editor - JWT manipulation","Collaborator - OOB detection"]}
+    ]
+  },
+  {
+    "tool":"Gobuster","icon":"📂","sections":[
+      {"title":"Directory Mode","commands":["gobuster dir -u http://target -w wordlist.txt","gobuster dir -u URL -w wordlist -x php,html,txt","gobuster dir -u URL -w wordlist -t 50","gobuster dir -u URL -w wordlist -s 200,301","gobuster dir -u URL -w wordlist -b 404,403"]},
+      {"title":"DNS Mode","commands":["gobuster dns -d target.com -w wordlist.txt","gobuster dns -d target.com -w wordlist -t 100","gobuster dns -d target.com -w wordlist --wildcard"]},
+      {"title":"VHost Mode","commands":["gobuster vhost -u http://target -w wordlist.txt","gobuster vhost -u URL -w wordlist --append-domain"]},
+      {"title":"Options","commands":["gobuster dir -u URL -w wordlist -c 'cookie=value'","gobuster dir -u URL -w wordlist -H 'Auth: Bearer token'","gobuster dir -u URL -w wordlist -k (Skip SSL)","gobuster dir -u URL -w wordlist -o output.txt","gobuster dir -u URL -w wordlist -r (Follow redirects)"]}
+    ]
+  },
+  {
+    "tool":"Hydra","icon":"🔐","sections":[
+      {"title":"Common Services","commands":["hydra -l user -P wordlist target ssh","hydra -l user -P wordlist target ftp","hydra -l user -P wordlist target rdp","hydra -l user -P wordlist target smb","hydra -l user -P wordlist target telnet","hydra -l user -P wordlist target mysql"]},
+      {"title":"Web Forms","commands":["hydra -l admin -P wordlist target http-post-form '/login:user=^USER^&pass=^PASS^:F=incorrect'","hydra -l admin -P wordlist target http-get-form '/login:user=^USER^&pass=^PASS^:F=failed'","hydra -l admin -P wordlist target https-post-form '/login:user=^USER^&pass=^PASS^:F=invalid'"]},
+      {"title":"Options","commands":["hydra -L users.txt -P passwords.txt target ssh","hydra -l user -P wordlist -t 16 target ssh (Threads)","hydra -l user -P wordlist -f target ssh (Stop on first)","hydra -l user -P wordlist -v target ssh (Verbose)","hydra -l user -P wordlist -s 2222 target ssh (Port)"]}
+    ]
+  },
+  {
+    "tool":"Hashcat","icon":"🔨","sections":[
+      {"title":"Common Hash Modes","commands":["hashcat -m 0 hash wordlist (MD5)","hashcat -m 100 hash wordlist (SHA1)","hashcat -m 1400 hash wordlist (SHA256)","hashcat -m 1000 hash wordlist (NTLM)","hashcat -m 1800 hash wordlist (SHA512crypt)","hashcat -m 3200 hash wordlist (bcrypt)","hashcat -m 5600 hash wordlist (NTLMv2)","hashcat -m 13100 hash wordlist (Kerberoast)","hashcat -m 22000 hash wordlist (WPA)"]},
+      {"title":"Attack Modes","commands":["hashcat -a 0 hash wordlist (Dictionary)","hashcat -a 1 hash wordlist1 wordlist2 (Combination)","hashcat -a 3 hash ?a?a?a?a?a?a (Brute Force)","hashcat -a 6 hash wordlist ?d?d?d (Hybrid)","hashcat -a 7 hash ?d?d?d wordlist (Hybrid)"]},
+      {"title":"Rules","commands":["hashcat -r rules/best64.rule hash wordlist","hashcat -r rules/d3ad0ne.rule hash wordlist","hashcat -r rules/dive.rule hash wordlist","hashcat -r rules/rockyou-30000.rule hash wordlist"]},
+      {"title":"Options","commands":["hashcat --show hash (Show cracked)","hashcat -O hash wordlist (Optimized)","hashcat -w 3 hash wordlist (Workload)","hashcat --force hash wordlist (Force CPU)","hashcat -o cracked.txt hash wordlist (Output)"]}
+    ]
+  }
+]

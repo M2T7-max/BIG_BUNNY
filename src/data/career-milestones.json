@@ -1,0 +1,24 @@
+{
+  "milestones": [
+    {"id":"cm-01","level":"Novice","range":"$0","color":"#666","icon":"🌱","skills":["Basic HTML/CSS knowledge","Understanding of HTTP","Burp Suite basics","OWASP Top 10 theory"],"tasks":["Complete DVWA beginner labs","Read Web Hacking 101 Ch.1-3","Set up Burp Suite proxy","Join HackerOne"]},
+    {"id":"cm-02","level":"Beginner","range":"$0-$100","color":"#00ff41","icon":"🔰","skills":["Finding low-hanging fruit","Basic XSS and IDOR","Report writing basics","One valid submission"],"tasks":["Submit first valid report","Find XSS on bugcrowd VRT","Complete Bootcamp Ch.1-6","Earn first bounty"]},
+    {"id":"cm-03","level":"Hunter","range":"$100-$1K","color":"#00d4ff","icon":"🏹","skills":["Multiple vuln types","Recon automation","Medium severity findings","Consistent submissions"],"tasks":["5+ accepted reports","Automate subdomain enum","Find SQLi or SSRF","Build recon pipeline"]},
+    {"id":"cm-04","level":"Specialist","range":"$1K-$5K","color":"#b829dd","icon":"⚔️","skills":["Deep web app knowledge","Custom tooling","High severity findings","Program expertise"],"tasks":["20+ accepted reports","Build custom scanner","Find critical vulnerability","Specialize in 2-3 vuln types"]},
+    {"id":"cm-05","level":"Expert","range":"$5K-$10K","color":"#ff8800","icon":"🏆","skills":["Advanced exploitation","Chain vulnerabilities","API/mobile testing","Mentoring others"],"tasks":["50+ accepted reports","Chain bugs for critical impact","Test APIs and mobile apps","Write blog posts"]},
+    {"id":"cm-06","level":"Senior","range":"$10K-$50K","color":"#ff2d95","icon":"💎","skills":["Architecture review","0-day research","Private program access","Industry recognition"],"tasks":["100+ accepted reports","Invited to private programs","Present at security conf","Publish CVEs"]},
+    {"id":"cm-07","level":"Elite","range":"$50K-$100K","color":"#ffd700","icon":"👑","skills":["Full-stack security","Research publication","Team leadership","Program advisory"],"tasks":["200+ reports","Advisory board member","Train other hunters","Consistent critical findings"]},
+    {"id":"cm-08","level":"Legend","range":"$100K+","color":"#ff0040","icon":"🌟","skills":["World-class expertise","Original research","Industry influence","Legacy impact"],"tasks":["Hall of Fame listings","Major CVE discoveries","Conference keynotes","Book/course author"]}
+  ],
+  "earnings_chart": [
+    {"month":1,"target":0,"label":"Setup & Learning"},
+    {"month":2,"target":0,"label":"First Reports"},
+    {"month":3,"target":100,"label":"First Bounty"},
+    {"month":6,"target":500,"label":"Consistent Hunting"},
+    {"month":9,"target":2000,"label":"Specialization"},
+    {"month":12,"target":5000,"label":"Year 1 Goal"},
+    {"month":18,"target":15000,"label":"Private Programs"},
+    {"month":24,"target":30000,"label":"Expert Level"},
+    {"month":36,"target":75000,"label":"Senior Hunter"},
+    {"month":48,"target":100000,"label":"Elite Status"}
+  ]
+}

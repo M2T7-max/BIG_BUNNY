@@ -1,0 +1,95 @@
+version: '3.8'
+
+# Bug Bounty Learning Platform - Docker Lab Environment
+# Start all labs: docker compose up -d
+# Stop all labs: docker compose down
+# View logs: docker compose logs -f
+
+services:
+  # DVWA - Damn Vulnerable Web Application
+  dvwa:
+    image: vulnerables/web-dvwa
+    container_name: bb-dvwa
+    ports:
+      - "4280:80"
+    environment:
+      - MYSQL_HOST=dvwa-db
+    depends_on:
+      - dvwa-db
+    restart: unless-stopped
+    networks:
+      - bb-lab-net
+
+  dvwa-db:
+    image: mysql:5.7
+    container_name: bb-dvwa-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=dvwa
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USER=dvwa
+      - MYSQL_PASSWORD=dvwa
+    volumes:
+      - dvwa-db-data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - bb-lab-net
+
+  # bWAPP - Buggy Web Application
+  bwapp:
+    image: raesene/bwapp
+    container_name: bb-bwapp
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+    networks:
+      - bb-lab-net
+
+  # OWASP WebGoat
+  webgoat:
+    image: webgoat/webgoat
+    container_name: bb-webgoat
+    ports:
+      - "8082:8080"
+      - "9090:9090"
+    environment:
+      - WEBGOAT_HOST=0.0.0.0
+      - WEBGOAT_PORT=8080
+    restart: unless-stopped
+    networks:
+      - bb-lab-net
+
+  # OWASP Juice Shop
+  juice-shop:
+    image: bkimminich/juice-shop
+    container_name: bb-juice-shop
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+    networks:
+      - bb-lab-net
+
+  # Metasploitable 2
+  metasploitable:
+    image: tleemcjr/metasploitable2
+    container_name: bb-metasploitable
+    ports:
+      - "8083:80"
+      - "2221:22"
+      - "2121:21"
+      - "4445:445"
+      - "3307:3306"
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+    networks:
+      - bb-lab-net
+
+volumes:
+  dvwa-db-data:
+
+networks:
+  bb-lab-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

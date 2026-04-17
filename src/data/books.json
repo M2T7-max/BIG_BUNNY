@@ -1,0 +1,59 @@
+{
+  "books": [
+    {
+      "id": "bootcamp",
+      "title": "Bug Bounty Bootcamp",
+      "author": "Vickie Li",
+      "color": "#00ff41",
+      "icon": "🎯",
+      "description": "The definitive guide to finding and reporting web vulnerabilities. From recon to final report.",
+      "chapters": [
+        {"id":"bc-01","num":1,"title":"Picking a Bug Bounty Program","topics":["Program types","Scope analysis","VDP vs paid","Asset selection"],"duration":"30 min","difficulty":"Easy"},
+        {"id":"bc-02","num":2,"title":"Sustaining Your Success","topics":["Mindset","Time management","Burnout prevention","Community"],"duration":"20 min","difficulty":"Easy"},
+        {"id":"bc-03","num":3,"title":"How the Internet Works","topics":["HTTP/HTTPS","DNS","TCP/IP","Cookies","Sessions"],"duration":"45 min","difficulty":"Easy"},
+        {"id":"bc-04","num":4,"title":"Environmental Setup","topics":["Burp Suite","Browser config","Proxy setup","Tool installation"],"duration":"40 min","difficulty":"Easy"},
+        {"id":"bc-05","num":5,"title":"Web Hacking Reconnaissance","topics":["Google dorking","Subdomain enum","Port scanning","Tech stack ID"],"duration":"60 min","difficulty":"Medium"},
+        {"id":"bc-06","num":6,"title":"Cross-Site Scripting (XSS)","topics":["Reflected XSS","Stored XSS","DOM XSS","XSS payloads","CSP bypass"],"duration":"90 min","difficulty":"Medium"},
+        {"id":"bc-07","num":7,"title":"Open Redirects","topics":["URL validation bypass","Redirect chains","OAuth redirect abuse"],"duration":"40 min","difficulty":"Easy"},
+        {"id":"bc-08","num":8,"title":"Clickjacking","topics":["X-Frame-Options","CSP frame-ancestors","UI redressing"],"duration":"30 min","difficulty":"Easy"},
+        {"id":"bc-09","num":9,"title":"Cross-Site Request Forgery","topics":["CSRF tokens","SameSite cookies","State-changing requests"],"duration":"50 min","difficulty":"Medium"},
+        {"id":"bc-10","num":10,"title":"Insecure Direct Object References","topics":["IDOR patterns","UUID guessing","API IDOR","Automation"],"duration":"45 min","difficulty":"Medium"},
+        {"id":"bc-11","num":11,"title":"SQL Injection","topics":["Union-based","Boolean blind","Time-based","Error-based","SQLMap"],"duration":"90 min","difficulty":"Hard"},
+        {"id":"bc-12","num":12,"title":"Race Conditions","topics":["TOCTOU","Limit overrun","Concurrent requests"],"duration":"45 min","difficulty":"Hard"},
+        {"id":"bc-13","num":13,"title":"Server-Side Request Forgery","topics":["Basic SSRF","Blind SSRF","Cloud metadata","Filter bypass"],"duration":"60 min","difficulty":"Hard"},
+        {"id":"bc-14","num":14,"title":"Insecure Deserialization","topics":["PHP","Java","Python pickle",".NET"],"duration":"60 min","difficulty":"Hard"},
+        {"id":"bc-15","num":15,"title":"XML External Entity","topics":["In-band XXE","Blind XXE","XXE to SSRF","File read"],"duration":"50 min","difficulty":"Hard"},
+        {"id":"bc-16","num":16,"title":"Template Injection","topics":["SSTI","Jinja2","Twig","Freemarker","Detection"],"duration":"50 min","difficulty":"Hard"},
+        {"id":"bc-17","num":17,"title":"Application Logic Errors","topics":["Business logic","Price manipulation","Privilege escalation"],"duration":"45 min","difficulty":"Medium"},
+        {"id":"bc-18","num":18,"title":"Remote Code Execution","topics":["Command injection","Code injection","File upload RCE"],"duration":"60 min","difficulty":"Hard"},
+        {"id":"bc-19","num":19,"title":"Same-Origin Policy","topics":["SOP","CORS","postMessage","JSONP"],"duration":"40 min","difficulty":"Medium"},
+        {"id":"bc-20","num":20,"title":"Single-Sign-On Security","topics":["OAuth 2.0","SAML","JWT attacks","OpenID Connect"],"duration":"60 min","difficulty":"Hard"},
+        {"id":"bc-21","num":21,"title":"Information Disclosure","topics":["Debug endpoints","Stack traces","Git exposure","Backup files"],"duration":"35 min","difficulty":"Easy"},
+        {"id":"bc-22","num":22,"title":"Conducting Code Reviews","topics":["Source code analysis","Grep patterns","Dangerous sinks"],"duration":"50 min","difficulty":"Medium"},
+        {"id":"bc-23","num":23,"title":"Hacking Android Apps","topics":["APK decompilation","Certificate pinning","Intent sniffing"],"duration":"60 min","difficulty":"Hard"},
+        {"id":"bc-24","num":24,"title":"API Hacking","topics":["REST API","GraphQL","Rate limiting","Broken auth"],"duration":"55 min","difficulty":"Medium"},
+        {"id":"bc-25","num":25,"title":"Automatic Vulnerability Discovery","topics":["Fuzzing","Custom scripts","CI/CD scanning","Bug bounty automation"],"duration":"50 min","difficulty":"Hard"}
+      ]
+    },
+    {
+      "id": "webhacking101",
+      "title": "Web Hacking 101",
+      "author": "Peter Yaworski",
+      "color": "#00d4ff",
+      "icon": "📖",
+      "description": "Learn web hacking through real-world HackerOne bug reports. Each chapter features actual disclosed vulnerabilities.",
+      "chapters": [
+        {"id":"wh-01","num":1,"title":"Open Redirect Vulnerabilities","topics":["Shopify","HackerOne reports","URL parsing"],"duration":"25 min","difficulty":"Easy"},
+        {"id":"wh-02","num":2,"title":"HTTP Parameter Pollution","topics":["HPP attacks","Parameter precedence","Real examples"],"duration":"30 min","difficulty":"Medium"},
+        {"id":"wh-03","num":3,"title":"Cross-Site Request Forgery","topics":["Shopify CSRF","Twitter CSRF","Real bypasses"],"duration":"35 min","difficulty":"Medium"},
+        {"id":"wh-04","num":4,"title":"HTML Injection","topics":["Content injection","Email spoofing","Form injection"],"duration":"25 min","difficulty":"Easy"},
+        {"id":"wh-05","num":5,"title":"CRLF Injection","topics":["Header injection","HTTP splitting","Cache poisoning"],"duration":"30 min","difficulty":"Medium"},
+        {"id":"wh-06","num":6,"title":"Cross-Site Scripting","topics":["Google XSS","Shopify XSS","WAF bypass"],"duration":"45 min","difficulty":"Medium"},
+        {"id":"wh-07","num":7,"title":"SQL Injection","topics":["Yahoo SQLi","Drupal SQLi","Blind techniques"],"duration":"45 min","difficulty":"Hard"},
+        {"id":"wh-08","num":8,"title":"Server Side Request Forgery","topics":["ESEA SSRF","Cloud SSRF","Internal network"],"duration":"40 min","difficulty":"Hard"},
+        {"id":"wh-09","num":9,"title":"XML External Entity","topics":["Wikiloc XXE","Facebook XXE","OOB extraction"],"duration":"35 min","difficulty":"Hard"},
+        {"id":"wh-10","num":10,"title":"Remote Code Execution","topics":["ImageMagick","Shell injection","Deserialization RCE"],"duration":"40 min","difficulty":"Hard"}
+      ]
+    }
+  ]
+}

